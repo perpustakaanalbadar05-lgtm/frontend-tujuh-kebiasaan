@@ -1,7 +1,10 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { Menu, UserCircle, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const DashboardLayout = () => {
+  const { user, logout } = useAuth();
+
   return (
     <div className="min-h-screen bg-[#F5F5F5] flex flex-col">
       {/* Top Header */}
@@ -16,11 +19,15 @@ const DashboardLayout = () => {
           <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors">
             <UserCircle className="w-8 h-8 text-[#4CAF50]" />
             <div className="hidden md:block">
-              <p className="text-sm font-semibold text-gray-800">Super Admin</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-sm font-semibold text-gray-800 capitalize">{user?.name || 'Loading...'}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role || 'Guest'}</p>
             </div>
           </div>
-          <button className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors">
+          <button 
+            onClick={logout}
+            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+            title="Logout"
+          >
             <LogOut className="w-5 h-5" />
           </button>
         </div>

@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import axios from '../../lib/axios';
 
 const LoginPage = () => {
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    setErrorMsg('');
+
+    try {
+      const response = await axios.post('/login', formData);
+      if (response.data.success) {
+        login(response.data.data.access_token, response.data.data.user);
+      }
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        setErrorMsg(error.response.data.message);
+      } else {
+        setErrorMsg('Terjadi kesalahan pada server. Pastikan backend aktif.');
+      }
+    } finally {
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+    }
   };
 
   return (
@@ -25,6 +43,12 @@ const LoginPage = () => {
       </div>
 
       <form onSubmit={handleLogin} className="space-y-6">
+        {errorMsg && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+            {errorMsg}
+          </div>
+        )}
+        
         {/* Username/Email Input */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 block">
@@ -32,6 +56,8 @@ const LoginPage = () => {
           </label>
           <input
             type="text"
+            value={formData.username}
+            onChange={(e) => setFormData({...formData, username: e.target.value})}
             placeholder="Masukkan username atau email"
             className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:border-[#4CAF50] transition-colors"
             required
@@ -51,6 +77,8 @@ const LoginPage = () => {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
               placeholder="Masukkan kata sandi"
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:border-[#4CAF50] transition-colors"
               required
