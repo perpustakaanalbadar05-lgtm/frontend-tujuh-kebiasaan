@@ -36,33 +36,54 @@ const DashboardLayout = () => {
       {/* Main Content Area */}
       <div className="flex flex-1">
         {/* Sidebar (Desktop) */}
-        <aside className="hidden lg:block w-64 bg-white border-r border-gray-100 shadow-[2px_0_10px_rgba(0,0,0,0.02)] p-4">
-          <nav className="space-y-2">
+        <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+          <div className="p-4 border-b border-gray-100 text-center">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Navigasi Utama</p>
+          </div>
+          <nav className="flex-1 p-4 space-y-1">
             <NavLink 
-              to="/dashboard" 
-              end
-              className={({ isActive }) => 
-                `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`
-              }
+              to="/dashboard" end
+              className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
             >
+              <div className="w-5 h-5">📊</div>
               Dashboard
             </NavLink>
-            <NavLink 
-              to="/dashboard/students" 
-              className={({ isActive }) => 
-                `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`
-              }
-            >
-              Data Siswa
-            </NavLink>
-            <NavLink 
-              to="/dashboard/teachers" 
-              className={({ isActive }) => 
-                `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`
-              }
-            >
-              Data Guru
-            </NavLink>
+            {user?.role === 'siswa' && (
+              <NavLink 
+                to="/dashboard/journal"
+                className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <div className="w-5 h-5">📝</div>
+                Jurnal Harian
+              </NavLink>
+            )}
+            {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'guru' || user?.role === 'orangtua') && (
+              <NavLink 
+                to="/dashboard/approvals"
+                className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <div className="w-5 h-5">✅</div>
+                Validasi Jurnal
+              </NavLink>
+            )}
+            {(user?.role === 'admin' || user?.role === 'superadmin') && (
+              <>
+                <NavLink 
+                  to="/dashboard/students"
+                  className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <div className="w-5 h-5">🎓</div>
+                  Data Siswa
+                </NavLink>
+                <NavLink 
+                  to="/dashboard/teachers"
+                  className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <div className="w-5 h-5">👨‍🏫</div>
+                  Data Guru
+                </NavLink>
+              </>
+            )}
             <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg font-medium transition-colors">
               Transaksi
             </a>

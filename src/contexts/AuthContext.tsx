@@ -27,31 +27,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('access_token'));
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fungsi untuk mengecek user yang sedang aktif
-  const checkAuth = async () => {
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await axios.get('/me');
-      if (response.data.success) {
-        setUser(response.data.data);
-      } else {
-        throw new Error('Gagal mendapatkan profil');
-      }
-    } catch (error) {
-      // Jika token tidak valid / expired
-      localStorage.removeItem('access_token');
-      setToken(null);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    // Fungsi untuk mengecek user yang sedang aktif
+    const checkAuth = async () => {
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get('/me');
+        if (response.data.success) {
+          setUser(response.data.data);
+        } else {
+          throw new Error('Gagal mendapatkan profil');
+        }
+      } catch (err) {
+        // Jika token tidak valid / expired
+        localStorage.removeItem('access_token');
+        setToken(null);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     checkAuth();
   }, [token]);
 

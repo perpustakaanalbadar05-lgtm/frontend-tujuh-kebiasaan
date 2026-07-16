@@ -1,18 +1,52 @@
 
-import { Users, GraduationCap, CheckSquare, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, GraduationCap, CheckSquare, Activity, Loader2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import axios from '../../lib/axios';
 
-const mockChartData = [
-  { name: 'Senin', partisipasi: 4000 },
-  { name: 'Selasa', partisipasi: 3000 },
-  { name: 'Rabu', partisipasi: 2000 },
-  { name: 'Kamis', partisipasi: 2780 },
-  { name: 'Jumat', partisipasi: 1890 },
-  { name: 'Sabtu', partisipasi: 2390 },
-  { name: 'Minggu', partisipasi: 3490 },
-];
+interface ChartData {
+  name: string;
+  partisipasi: number;
+}
+
+interface DashboardStats {
+  total_students: number;
+  total_teachers: number;
+  journals_this_week: number;
+  activity_rate: number;
+  chart_data: ChartData[];
+}
 
 const DashboardPage = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get('/dashboard/stats');
+        if (response.data.success) {
+          setStats(response.data.data);
+        }
+      } catch (error) {
+        console.error('Gagal mengambil statistik dashboard:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStats();
+  }, []);
+
+  if (isLoading || !stats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 text-[#4CAF50] animate-spin mb-4" />
+        <p className="text-gray-500">Menganalisis data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -30,7 +64,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Total Siswa</p>
-            <p className="text-2xl font-bold text-gray-900">1,245</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.total_students.toLocaleString('id-ID')}</p>
           </div>
         </div>
         
@@ -40,7 +74,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Total Guru</p>
-            <p className="text-2xl font-bold text-gray-900">84</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.total_teachers.toLocaleString('id-ID')}</p>
           </div>
         </div>
 
@@ -50,7 +84,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Jurnal Terisi (Mg ini)</p>
-            <p className="text-2xl font-bold text-gray-900">8,532</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.journals_this_week.toLocaleString('id-ID')}</p>
           </div>
         </div>
 
@@ -60,7 +94,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Tingkat Aktivitas</p>
-            <p className="text-2xl font-bold text-gray-900">92%</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.activity_rate}%</p>
           </div>
         </div>
       </div>
@@ -73,7 +107,7 @@ const DashboardPage = () => {
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={mockChartData}
+              data={stats.chart_data}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
@@ -84,9 +118,10 @@ const DashboardPage = () => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} />
+              <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} />
               <Tooltip 
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                formatter={(value: any) => [`${value} Jurnal`, 'Partisipasi']}
               />
               <Area 
                 type="monotone" 
