@@ -7,6 +7,7 @@ import StudentListPage from './pages/master/StudentListPage';
 import TeacherListPage from './pages/master/TeacherListPage';
 import JournalPage from './pages/student/JournalPage';
 import JournalApprovalPage from './pages/transaction/JournalApprovalPage';
+import ReportPage from './pages/transaction/ReportPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
@@ -30,6 +31,7 @@ function App() {
               <Route path="teachers" element={<TeacherListPage />} />
               <Route path="journal" element={<JournalPage />} />
               <Route path="approvals" element={<JournalApprovalPage />} />
+              <Route path="reports" element={<ReportPage />} />
             </Route>
           </Route>
 

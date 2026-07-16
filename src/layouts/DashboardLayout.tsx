@@ -66,6 +66,13 @@ const DashboardLayout = () => {
                 Validasi Jurnal
               </NavLink>
             )}
+            <NavLink 
+              to="/dashboard/reports"
+              className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
+              <div className="w-5 h-5">📄</div>
+              Laporan Bulanan
+            </NavLink>
             {(user?.role === 'admin' || user?.role === 'superadmin') && (
               <>
                 <NavLink 
