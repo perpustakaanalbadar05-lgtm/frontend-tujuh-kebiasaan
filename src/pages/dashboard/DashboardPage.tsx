@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Users, GraduationCap, CheckSquare, Activity, Loader2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from '../../lib/axios';
+import YayasanDashboard from './YayasanDashboard';
 
 interface ChartData {
   name: string;
@@ -10,6 +11,7 @@ interface ChartData {
 }
 
 interface DashboardStats {
+  type: string;
   total_students: number;
   total_teachers: number;
   journals_this_week: number;
@@ -45,6 +47,10 @@ const DashboardPage = () => {
         <p className="text-gray-500">Menganalisis data...</p>
       </div>
     );
+  }
+
+  if (stats.type === 'yayasan') {
+    return <YayasanDashboard data={stats as any} />;
   }
 
   return (
