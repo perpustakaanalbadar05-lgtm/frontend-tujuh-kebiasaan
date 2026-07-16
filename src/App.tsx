@@ -23,6 +23,7 @@ import MappingPage from './pages/master/MappingPage';
 import MonitoringPage from './pages/monitoring/MonitoringPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import SchoolProfilePage from './pages/master/SchoolProfilePage';
+import CalendarPage from './pages/master/CalendarPage';
 import AnnouncementPage from './pages/announcement/AnnouncementPage';
 import BadgeMasterPage from './pages/master/BadgeMasterPage';
 import AchievementPage from './pages/transaction/AchievementPage';
@@ -62,6 +63,7 @@ function App() {
               <Route path="academic-years" element={<AcademicYearListPage />} />
               <Route path="parents" element={<ParentListPage />} />
               <Route path="holidays" element={<HolidayListPage />} />
+              <Route path="calendar" element={<CalendarPage />} />
               <Route path="habits" element={<HabitListPage />} />
               <Route path="predicates" element={<PredicateListPage />} />
               <Route path="mappings" element={<MappingPage />} />

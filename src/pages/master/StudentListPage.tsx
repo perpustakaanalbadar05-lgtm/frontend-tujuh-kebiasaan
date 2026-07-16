@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, X, Loader2, UploadCloud } from 'lucide-react';
+import { Search, Plus, MoreVertical, X, Loader2, UploadCloud, Download, KeyRound } from 'lucide-react';
 import axios from '../../lib/axios';
 
 interface Student {
@@ -105,6 +105,34 @@ const StudentListPage = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await axios.get('/master/students/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'data_siswa.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert('Gagal mengekspor data');
+    }
+  };
+
+  const handleResetPassword = async (id: number, name: string) => {
+    if (window.confirm(`Yakin ingin mereset sandi siswa ${name} menjadi NIS-nya?`)) {
+      try {
+        const response = await axios.patch(`/master/students/${id}/reset-password`);
+        if (response.data.success) {
+          alert('Sandi berhasil direset!');
+        }
+      } catch (error) {
+        alert('Gagal mereset sandi.');
+      }
+    }
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     s.nis.includes(searchQuery)
@@ -118,7 +146,13 @@ const StudentListPage = () => {
           <h2 className="text-2xl font-bold text-gray-800">Data Siswa</h2>
           <p className="text-sm text-gray-500">Kelola data siswa yang terdaftar di sistem.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button 
+            onClick={handleExport}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <Download size={20} /> Export Excel
+          </button>
           <button 
             onClick={() => { setFormError(''); setImportFile(null); setIsImportModalOpen(true); }}
             className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
@@ -187,9 +221,18 @@ const StudentListPage = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-right">
-                      <button className="p-1.5 text-gray-400 hover:text-gray-700 rounded-md hover:bg-gray-100 transition-colors">
-                        <MoreVertical size={20} />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleResetPassword(student.id, student.name)}
+                          title="Reset Password ke NIS"
+                          className="p-1.5 text-orange-500 hover:text-white rounded-md hover:bg-orange-500 transition-colors"
+                        >
+                          <KeyRound size={18} />
+                        </button>
+                        <button className="p-1.5 text-gray-400 hover:text-gray-700 rounded-md hover:bg-gray-100 transition-colors">
+                          <MoreVertical size={20} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

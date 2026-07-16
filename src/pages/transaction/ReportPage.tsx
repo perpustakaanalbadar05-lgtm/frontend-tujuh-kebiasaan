@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Printer, Search, FileText, Medal } from 'lucide-react';
+import { Loader2, Printer, Search, FileText, Medal, Download } from 'lucide-react';
 import axios from '../../lib/axios';
 
 interface Student {
@@ -95,6 +95,21 @@ const ReportPage = () => {
     }
   };
 
+  const handleGlobalExport = async () => {
+    try {
+      const response = await axios.get('/reports/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'laporan_rekap_siswa.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert('Gagal mengekspor data laporan');
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -130,12 +145,20 @@ const ReportPage = () => {
         Gunakan class 'print:hidden' dari Tailwind.
       */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 print:hidden space-y-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">Cetak Raport Kebiasaan</h2>
-          <p className="text-gray-500 text-sm">Pilih siswa dan periode bulan untuk merekapitulasi data jurnal.</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Laporan & Rekapitulasi</h2>
+            <p className="text-gray-500 text-sm">Pilih siswa dan periode bulan untuk mencetak raport individu, atau unduh rekap global.</p>
+          </div>
+          <button 
+            onClick={handleGlobalExport}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm whitespace-nowrap"
+          >
+            <Download size={20} /> Export Rekap Excel
+          </button>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 pt-2">
           <div className="flex-1">
             <label className="block text-sm font-semibold text-gray-700 mb-1">Siswa</label>
             <select 

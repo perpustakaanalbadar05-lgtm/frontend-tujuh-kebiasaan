@@ -4,6 +4,7 @@ import { Users, GraduationCap, CheckSquare, Activity, Loader2 } from 'lucide-rea
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from '../../lib/axios';
 import YayasanDashboard from './YayasanDashboard';
+import SetupWizardModal from '../../components/SetupWizardModal';
 
 interface ChartData {
   name: string;
@@ -141,6 +142,9 @@ const DashboardPage = () => {
           </ResponsiveContainer>
         </div>
       </div>
+      
+      {/* Mounting the Setup Wizard Modal */}
+      <SetupWizardModal />
     </div>
   );
 };

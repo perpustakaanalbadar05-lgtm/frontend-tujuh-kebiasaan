@@ -2,12 +2,33 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Menu, UserCircle, LogOut, ChevronDown, ChevronRight, X, Megaphone, BarChart3, Database } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import axios from '../lib/axios';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({ master: false });
+  const [activeModules, setActiveModules] = useState<string[]>(['timeline', 'badge', 'evaluasi', 'kalender']);
+
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const response = await axios.get('/school-profile');
+        if (response.data.success) {
+          const mods = response.data.data.settings.active_modules;
+          if (mods) setActiveModules(JSON.parse(mods));
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    if (user?.school_id) {
+        fetchModules();
+    }
+  }, [user]);
+
+  const hasModule = (mod: string) => activeModules.includes(mod);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -57,11 +78,12 @@ const DashboardLayout = () => {
         {user?.role === 'siswa' && (
           <>
             <NavItem to="/dashboard/journal" icon="📝" label="Jurnal Harian" />
-            <NavItem to="/dashboard/achievements" icon="🏆" label="Koleksi Lencana" />
+            {hasModule('badge') && <NavItem to="/dashboard/achievements" icon="🏆" label="Koleksi Lencana" />}
           </>
         )}
         {(isAdmin || isTeacher || user?.role === 'orangtua') && <NavItem to="/dashboard/approvals" icon="✅" label="Validasi Jurnal" />}
         
+        {hasModule('kalender') && <NavItem to="/dashboard/calendar" icon="📅" label="Kalender Akademik" />}
         <NavItem to="/dashboard/announcements" icon={<Megaphone size={18} />} label="Pengumuman" />
         
         {(isAdmin || isTeacher) && (
@@ -69,7 +91,7 @@ const DashboardLayout = () => {
             <NavItem to="/dashboard/monitoring" icon={<BarChart3 size={18} />} label="Monitoring" />
             <NavItem to="/dashboard/class-comparison" icon="📈" label="Analitik Kelas" />
             <NavItem to="/dashboard/reports" icon="📄" label="Laporan" />
-            <NavItem to="/dashboard/evaluations" icon="📋" label="Evaluasi" />
+            {hasModule('evaluasi') && <NavItem to="/dashboard/evaluations" icon="📋" label="Evaluasi" />}
           </>
         )}
 
@@ -97,7 +119,7 @@ const DashboardLayout = () => {
               <SubNavItem to="/dashboard/holidays" label="Hari Libur" />
               <SubNavItem to="/dashboard/habits" label="7 Kebiasaan" />
               <SubNavItem to="/dashboard/predicates" label="Predikat Nilai" />
-              <SubNavItem to="/dashboard/badges" label="Master Badge" />
+              {hasModule('badge') && <SubNavItem to="/dashboard/badges" label="Master Badge" />}
             </div>
           </div>
         )}
@@ -105,7 +127,7 @@ const DashboardLayout = () => {
         {isAdmin && (
           <>
             <NavItem to="/dashboard/school-profile" icon="🏫" label="Profil Sekolah" />
-            <NavItem to="/dashboard/activity-logs" icon="🕵️‍♂️" label="Log Sistem" />
+            {hasModule('timeline') && <NavItem to="/dashboard/activity-logs" icon="🕵️‍♂️" label="Log Sistem" />}
             <NavItem to="/dashboard/settings" icon="⚙️" label="Pengaturan" />
           </>
         )}

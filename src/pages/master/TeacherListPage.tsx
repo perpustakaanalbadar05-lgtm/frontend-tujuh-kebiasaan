@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Edit2, Trash2, Loader2, Users, X, Check, UploadCloud } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Loader2, Users, X, Check, UploadCloud, Download, KeyRound } from 'lucide-react';
 import axios from '../../lib/axios';
 
 interface Teacher {
@@ -110,6 +110,34 @@ const TeacherListPage = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await axios.get('/master/teachers/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'data_guru.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert('Gagal mengekspor data');
+    }
+  };
+
+  const handleResetPassword = async (id: number, name: string) => {
+    if (window.confirm(`Yakin ingin mereset sandi guru ${name}? Sandi akan direset menjadi NIP atau 'password'.`)) {
+      try {
+        const response = await axios.patch(`/master/teachers/${id}/reset-password`);
+        if (response.data.success) {
+          alert('Sandi berhasil direset!');
+        }
+      } catch (error) {
+        alert('Gagal mereset sandi.');
+      }
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm('Yakin ingin menghapus data guru ini?')) return;
     try {
@@ -125,7 +153,13 @@ const TeacherListPage = () => {
           <h2 className="text-2xl font-bold text-gray-800">Data Guru</h2>
           <p className="text-sm text-gray-500">Kelola data tenaga pendidik. Total: {pagination.total}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button 
+            onClick={handleExport}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow-md"
+          >
+            <Download size={20} /> Export Excel
+          </button>
           <button 
             onClick={() => { setErrorMsg(''); setImportFile(null); setIsImportModalOpen(true); }}
             className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow-md"
@@ -188,6 +222,13 @@ const TeacherListPage = () => {
                     <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">{t.phone || '—'}</td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
+                        <button 
+                          onClick={() => handleResetPassword(t.id, t.name)} 
+                          className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors" 
+                          title="Reset Password"
+                        >
+                          <KeyRound size={16} />
+                        </button>
                         <button onClick={() => openEdit(t)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                           <Edit2 size={16} />
                         </button>

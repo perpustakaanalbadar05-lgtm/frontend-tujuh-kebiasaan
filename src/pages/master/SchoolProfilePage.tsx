@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Save, Loader2, Upload, MapPin, Mail, Phone, Hash, Clock, UserCheck } from 'lucide-react';
+import { Building2, Save, Loader2, Upload, MapPin, Mail, Phone, Hash, Clock, UserCheck, Settings } from 'lucide-react';
 import axios from '../../lib/axios';
 
 const SchoolProfilePage = () => {
@@ -17,6 +17,8 @@ const SchoolProfilePage = () => {
     journal_start_time: '00:00',
     journal_end_time: '23:59',
   });
+  
+  const [activeModules, setActiveModules] = useState<string[]>(['timeline', 'badge', 'evaluasi', 'kalender']);
   
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -39,6 +41,14 @@ const SchoolProfilePage = () => {
             journal_start_time: settings.journal_start_time || '00:00',
             journal_end_time: settings.journal_end_time || '23:59',
           });
+          
+          if (settings.active_modules) {
+            try {
+              setActiveModules(JSON.parse(settings.active_modules));
+            } catch (e) {
+              // ignore
+            }
+          }
 
           if (school.logo) {
             setLogoPreview(`${import.meta.env.VITE_API_URL.replace('/api', '')}/storage/${school.logo}`);
@@ -75,6 +85,7 @@ const SchoolProfilePage = () => {
       Object.entries(formData).forEach(([key, value]) => {
         data.append(key, value);
       });
+      data.append('active_modules', JSON.stringify(activeModules));
       
       if (logoFile) {
         data.append('logo', logoFile);
@@ -214,6 +225,39 @@ const SchoolProfilePage = () => {
               <input type="time" value={formData.journal_end_time} onChange={(e) => setFormData({...formData, journal_end_time: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
               <p className="text-xs text-gray-500 mt-1">Siswa tidak dapat mengisi jurnal hari tersebut setelah jam ini.</p>
             </div>
+          </div>
+        </div>
+
+        {/* Konfigurasi Modul */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
+            <Settings className="text-purple-500" /> Konfigurasi Modul Dashboard
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">Pilih modul tambahan apa saja yang ingin diaktifkan di sidebar aplikasi.</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { id: 'timeline', label: 'Log Sistem (Timeline)' },
+              { id: 'badge', label: 'Gamifikasi (Badge)' },
+              { id: 'evaluasi', label: 'Evaluasi Mingguan' },
+              { id: 'kalender', label: 'Kalender Akademik' }
+            ].map(mod => (
+              <label key={mod.id} className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={activeModules.includes(mod.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setActiveModules([...activeModules, mod.id]);
+                    } else {
+                      setActiveModules(activeModules.filter(m => m !== mod.id));
+                    }
+                  }}
+                  className="w-5 h-5 text-[#4CAF50] rounded focus:ring-[#4CAF50] border-gray-300"
+                />
+                <span className="font-medium text-gray-700">{mod.label}</span>
+              </label>
+            ))}
           </div>
         </div>
 
