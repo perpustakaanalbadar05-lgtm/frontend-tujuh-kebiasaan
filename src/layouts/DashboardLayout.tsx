@@ -16,7 +16,17 @@ const DashboardLayout = () => {
           <h1 className="text-xl font-bold text-[#2E7D32]">G7KAIH Management</h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors">
+          
+          <NavLink 
+            to="/dashboard/notifications"
+            className={({isActive}) => `relative p-2 rounded-md transition-colors ${isActive ? 'text-[#4CAF50] bg-green-50' : 'text-gray-500 hover:text-[#4CAF50] hover:bg-green-50'}`}
+            title="Notifikasi"
+          >
+            <div className="w-6 h-6 flex items-center justify-center text-xl">🔔</div>
+            {/* TODO: Add badge count here dynamically later */}
+          </NavLink>
+
+          <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors border-l pl-4 border-gray-200">
             <UserCircle className="w-8 h-8 text-[#4CAF50]" />
             <div className="hidden md:block">
               <p className="text-sm font-semibold text-gray-800 capitalize">{user?.name || 'Loading...'}</p>
@@ -107,10 +117,13 @@ const DashboardLayout = () => {
                 </NavLink>
               </>
             )}
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors mt-4">
+            <NavLink 
+              to="/dashboard/notifications"
+              className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors mt-4 ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
               <div className="w-5 h-5">🔔</div>
               Notification Center
-            </a>
+            </NavLink>
           </nav>
         </aside>
 

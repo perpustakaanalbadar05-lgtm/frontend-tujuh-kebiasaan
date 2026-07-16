@@ -10,6 +10,7 @@ import JournalApprovalPage from './pages/transaction/JournalApprovalPage';
 import ReportPage from './pages/transaction/ReportPage';
 import SettingsPage from './pages/master/SettingsPage';
 import EvaluationPage from './pages/transaction/EvaluationPage';
+import NotificationInboxPage from './pages/transaction/NotificationInboxPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
@@ -35,6 +36,7 @@ function App() {
               <Route path="approvals" element={<JournalApprovalPage />} />
               <Route path="reports" element={<ReportPage />} />
               <Route path="evaluations" element={<EvaluationPage />} />
+              <Route path="notifications" element={<NotificationInboxPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
