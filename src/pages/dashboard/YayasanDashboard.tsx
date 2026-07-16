@@ -1,5 +1,6 @@
 
 import { Building2, Users, GraduationCap, Trophy, MapPin, Activity } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface YayasanDashboardProps {
   data: {
@@ -7,6 +8,7 @@ interface YayasanDashboardProps {
     total_students: number;
     total_teachers: number;
     leaderboard: { name: string; journals: number }[];
+    chart_data?: { name: string; partisipasi: number }[];
   };
 }
 
@@ -108,6 +110,46 @@ const YayasanDashboard = ({ data }: YayasanDashboardProps) => {
           )}
         </div>
       </div>
+
+      {/* National Chart Section */}
+      {data.chart_data && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-gray-800">Tren Jurnal Nasional (7 Hari Terakhir)</h3>
+            <p className="text-sm text-gray-500">Total partisipasi pengisian jurnal dari seluruh sekolah di bawah naungan Yayasan.</p>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={data.chart_data}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorPartisipasiNasional" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} dy={10} />
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value: any) => [`${value} Jurnal`, 'Total Nasional']}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="partisipasi" 
+                  stroke="#3B82F6" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorPartisipasiNasional)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

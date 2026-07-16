@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, X, Loader2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, X, Loader2, UploadCloud } from 'lucide-react';
 import axios from '../../lib/axios';
 
 interface Student {
@@ -18,7 +18,10 @@ const StudentListPage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -71,6 +74,37 @@ const StudentListPage = () => {
     }
   };
 
+  const handleImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importFile) {
+      setFormError('Pilih file Excel terlebih dahulu.');
+      return;
+    }
+    
+    setIsImporting(true);
+    setFormError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+      
+      const response = await axios.post('/import/students', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (response.data.success) {
+        setIsImportModalOpen(false);
+        setImportFile(null);
+        alert('Data siswa berhasil diimport!');
+        fetchStudents();
+      }
+    } catch (error: any) {
+      setFormError(error.response?.data?.message || 'Gagal melakukan import data.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const filteredStudents = students.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     s.nis.includes(searchQuery)
@@ -84,12 +118,20 @@ const StudentListPage = () => {
           <h2 className="text-2xl font-bold text-gray-800">Data Siswa</h2>
           <p className="text-sm text-gray-500">Kelola data siswa yang terdaftar di sistem.</p>
         </div>
-        <button 
-          onClick={() => { setFormError(''); setIsModalOpen(true); }}
-          className="bg-[#4CAF50] hover:bg-[#388E3C] text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
-        >
-          <Plus size={20} /> Tambah Siswa
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => { setFormError(''); setImportFile(null); setIsImportModalOpen(true); }}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <UploadCloud size={20} /> Import Excel
+          </button>
+          <button 
+            onClick={() => { setFormError(''); setIsModalOpen(true); }}
+            className="bg-[#4CAF50] hover:bg-[#388E3C] text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <Plus size={20} /> Tambah Siswa
+          </button>
+        </div>
       </div>
 
       {/* Toolbar (Search & Filter) */}
@@ -229,6 +271,62 @@ const StudentListPage = () => {
                 </button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-lg font-medium transition-colors disabled:opacity-50">
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Data'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Import Modal */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isImporting && setIsImportModalOpen(false)}></div>
+          
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-800">Import Data Siswa</h3>
+              <button 
+                onClick={() => !isImporting && setIsImportModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form className="p-6 space-y-4" onSubmit={handleImportSubmit}>
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                  {formError}
+                </div>
+              )}
+              
+              <div className="bg-blue-50 border border-blue-100 text-blue-700 p-4 rounded-xl text-sm leading-relaxed mb-4">
+                <p className="font-bold mb-1">Panduan Import:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Pastikan file berformat <b>.xlsx</b> atau <b>.csv</b>.</li>
+                  <li>Header kolom (baris 1) wajib: <b>nis, nama, jenis_kelamin</b>.</li>
+                  <li>Sistem akan otomatis membuatkan akun user dengan password default sama dengan NIS.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">File Excel</label>
+                <input 
+                  type="file" 
+                  accept=".xlsx, .csv, .xls"
+                  onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:border-[#4CAF50]" 
+                  required 
+                />
+              </div>
+              
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => !isImporting && setIsImportModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors">
+                  Batal
+                </button>
+                <button type="submit" disabled={isImporting || !importFile} className="px-4 py-2 bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
+                  {isImporting ? <><Loader2 className="w-4 h-4 animate-spin" /> Mengimport...</> : 'Mulai Import'}
                 </button>
               </div>
             </form>

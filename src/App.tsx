@@ -12,6 +12,21 @@ import SettingsPage from './pages/master/SettingsPage';
 import EvaluationPage from './pages/transaction/EvaluationPage';
 import NotificationInboxPage from './pages/transaction/NotificationInboxPage';
 import ActivityTimelinePage from './pages/transaction/ActivityTimelinePage';
+import SchoolListPage from './pages/master/SchoolListPage';
+import ClassListPage from './pages/master/ClassListPage';
+import AcademicYearListPage from './pages/master/AcademicYearListPage';
+import ParentListPage from './pages/master/ParentListPage';
+import HolidayListPage from './pages/master/HolidayListPage';
+import HabitListPage from './pages/master/HabitListPage';
+import PredicateListPage from './pages/master/PredicateListPage';
+import MappingPage from './pages/master/MappingPage';
+import MonitoringPage from './pages/monitoring/MonitoringPage';
+import ProfilePage from './pages/profile/ProfilePage';
+import SchoolProfilePage from './pages/master/SchoolProfilePage';
+import AnnouncementPage from './pages/announcement/AnnouncementPage';
+import BadgeMasterPage from './pages/master/BadgeMasterPage';
+import AchievementPage from './pages/transaction/AchievementPage';
+import ClassComparisonPage from './pages/monitoring/ClassComparisonPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
@@ -40,6 +55,26 @@ function App() {
               <Route path="notifications" element={<NotificationInboxPage />} />
               <Route path="activity-logs" element={<ActivityTimelinePage />} />
               <Route path="settings" element={<SettingsPage />} />
+              
+              {/* New Phase 2 Routes */}
+              <Route path="schools" element={<SchoolListPage />} />
+              <Route path="classes" element={<ClassListPage />} />
+              <Route path="academic-years" element={<AcademicYearListPage />} />
+              <Route path="parents" element={<ParentListPage />} />
+              <Route path="holidays" element={<HolidayListPage />} />
+              <Route path="habits" element={<HabitListPage />} />
+              <Route path="predicates" element={<PredicateListPage />} />
+              <Route path="mappings" element={<MappingPage />} />
+              
+              <Route path="monitoring" element={<MonitoringPage />} />
+              <Route path="class-comparison" element={<ClassComparisonPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="school-profile" element={<SchoolProfilePage />} />
+              <Route path="announcements" element={<AnnouncementPage />} />
+              
+              {/* Gamification Routes */}
+              <Route path="badges" element={<BadgeMasterPage />} />
+              <Route path="achievements" element={<AchievementPage />} />
             </Route>
           </Route>
 
