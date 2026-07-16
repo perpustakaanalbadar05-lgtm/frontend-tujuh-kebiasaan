@@ -38,7 +38,7 @@ const LoginPage = () => {
   return (
     <div className="flex flex-col">
       <div className="mb-8 text-center lg:text-left">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Selamat Datang di PPMU 👋</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Selamat Datang </h2>
         <p className="text-gray-500">Silakan masuk menggunakan akun Anda.</p>
       </div>
 

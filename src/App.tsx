@@ -8,6 +8,8 @@ import TeacherListPage from './pages/master/TeacherListPage';
 import JournalPage from './pages/student/JournalPage';
 import JournalApprovalPage from './pages/transaction/JournalApprovalPage';
 import ReportPage from './pages/transaction/ReportPage';
+import SettingsPage from './pages/master/SettingsPage';
+import EvaluationPage from './pages/transaction/EvaluationPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
@@ -32,6 +34,8 @@ function App() {
               <Route path="journal" element={<JournalPage />} />
               <Route path="approvals" element={<JournalApprovalPage />} />
               <Route path="reports" element={<ReportPage />} />
+              <Route path="evaluations" element={<EvaluationPage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
 

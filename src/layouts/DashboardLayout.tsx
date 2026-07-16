@@ -73,6 +73,15 @@ const DashboardLayout = () => {
               <div className="w-5 h-5">📄</div>
               Laporan Bulanan
             </NavLink>
+            {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'guru') && (
+              <NavLink 
+                to="/dashboard/evaluations"
+                className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <div className="w-5 h-5">📝</div>
+                Evaluasi Program
+              </NavLink>
+            )}
             {(user?.role === 'admin' || user?.role === 'superadmin') && (
               <>
                 <NavLink 
@@ -89,16 +98,18 @@ const DashboardLayout = () => {
                   <div className="w-5 h-5">👨‍🏫</div>
                   Data Guru
                 </NavLink>
+                <NavLink 
+                  to="/dashboard/settings"
+                  className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${isActive ? 'bg-[#4CAF50]/10 text-[#2E7D32]' : 'text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <div className="w-5 h-5">⚙️</div>
+                  Konfigurasi Sistem
+                </NavLink>
               </>
             )}
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg font-medium transition-colors">
-              Transaksi
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg font-medium transition-colors">
-              Laporan
-            </a>
-            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg font-medium transition-colors">
-              Pengaturan
+            <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl font-medium transition-colors mt-4">
+              <div className="w-5 h-5">🔔</div>
+              Notification Center
             </a>
           </nav>
         </aside>
