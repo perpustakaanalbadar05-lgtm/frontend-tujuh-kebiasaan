@@ -34,6 +34,20 @@ const JournalApprovalPage = () => {
   
   const [isApproving, setIsApproving] = useState(false);
   const [actionNote, setActionNote] = useState('');
+  const [overriddenDetails, setOverriddenDetails] = useState<any[]>([]);
+
+  const handleOpenModal = (journal: Journal) => {
+    setSelectedJournal(journal);
+    setOverriddenDetails(JSON.parse(JSON.stringify(journal.details))); // Deep copy
+    setActionNote('');
+  };
+
+  const handleToggleDetail = (detailId: number) => {
+    if (user?.role !== 'orangtua') return;
+    setOverriddenDetails(prev => 
+      prev.map(d => d.id === detailId ? { ...d, is_done: !d.is_done } : d)
+    );
+  };
 
   const fetchJournals = async () => {
     setIsLoading(true);
@@ -63,7 +77,10 @@ const JournalApprovalPage = () => {
     try {
       const payload = {
         status,
-        ...(endpointRole === 'parent' ? { note: actionNote } : {})
+        ...(endpointRole === 'parent' ? { 
+          note: actionNote,
+          overrides: overriddenDetails.map(d => ({ id: d.id, is_done: d.is_done }))
+        } : {})
       };
       
       const response = await axios.post(`/journals/${selectedJournal.id}/approve-${endpointRole}`, payload);
@@ -166,7 +183,7 @@ const JournalApprovalPage = () => {
                       </td>
                       <td className="p-4 text-center">
                         <button 
-                          onClick={() => setSelectedJournal(journal)}
+                          onClick={() => handleOpenModal(journal)}
                           className="p-2 text-gray-400 hover:text-[#4CAF50] hover:bg-green-50 rounded-lg transition-colors"
                           title="Lihat Detail & Validasi"
                         >
@@ -208,19 +225,31 @@ const JournalApprovalPage = () => {
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Rincian Kebiasaan</h4>
-                {selectedJournal.details?.map((detail) => (
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Rincian Kebiasaan</h4>
+                  {user?.role === 'orangtua' && (
+                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-semibold border border-blue-100">
+                      Klik ikon centang untuk mengubah
+                    </span>
+                  )}
+                </div>
+                {overriddenDetails?.map((detail) => (
                   <div key={detail.id} className="flex items-start gap-3 p-3 bg-white border border-gray-100 rounded-xl">
-                    <div className="mt-0.5">
+                    <button 
+                      type="button"
+                      onClick={() => handleToggleDetail(detail.id)}
+                      disabled={user?.role !== 'orangtua'}
+                      className={`mt-0.5 focus:outline-none transition-transform ${user?.role === 'orangtua' ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}`}
+                    >
                       {detail.is_done ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
                       )}
-                    </div>
+                    </button>
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${detail.is_done ? 'text-gray-800' : 'text-gray-500'}`}>
-                        Kebiasaan #{detail.habit_id} {/* Idealnya ambil nama habit dari relasi */}
+                        Kebiasaan #{detail.habit_id}
                       </p>
                       {detail.note && (
                         <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded-md italic">"{detail.note}"</p>
