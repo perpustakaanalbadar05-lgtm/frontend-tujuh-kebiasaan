@@ -59,8 +59,11 @@ const DashboardLayout = () => {
     </NavLink>
   );
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isSuperAdmin = user?.role === 'superadmin';
+  const isAdmin = user?.role === 'admin';
   const isTeacher = user?.role === 'guru';
+  const isStudent = user?.role === 'siswa';
+  const isParent = user?.role === 'orangtua';
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -74,16 +77,16 @@ const DashboardLayout = () => {
       <nav className="flex-1 overflow-y-auto p-4 space-y-1.5">
         <NavItem to="/dashboard" label="Dashboard" />
 
-        {user?.role === 'siswa' && (
+        {isStudent && (
           <>
             <NavItem to="/dashboard/journal" label="Jurnal Harian" />
             {hasModule('badge') && <NavItem to="/dashboard/achievements" label="Koleksi Lencana" />}
           </>
         )}
-        {(isAdmin || isTeacher || user?.role === 'orangtua') && <NavItem to="/dashboard/approvals" label="Validasi Jurnal" />}
+        {(isAdmin || isTeacher || isParent) && <NavItem to="/dashboard/approvals" label="Validasi Jurnal" />}
         
-        {hasModule('kalender') && <NavItem to="/dashboard/calendar" label="Kalender Akademik" />}
-        <NavItem to="/dashboard/announcements" label="Pengumuman" />
+        {!isSuperAdmin && hasModule('kalender') && <NavItem to="/dashboard/calendar" label="Kalender Akademik" />}
+        {!isSuperAdmin && <NavItem to="/dashboard/announcements" label="Pengumuman" />}
         
         {(isAdmin || isTeacher) && (
           <>
@@ -94,7 +97,7 @@ const DashboardLayout = () => {
           </>
         )}
 
-        {isAdmin && (
+        {(isAdmin || isSuperAdmin) && (
           <div className="pt-2">
             <button 
               onClick={() => toggleMenu('master')}
@@ -105,17 +108,24 @@ const DashboardLayout = () => {
             </button>
             
             <div className={`mt-1 space-y-1 overflow-hidden transition-all duration-300 pl-4 ${openMenus['master'] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-              {user?.role === 'superadmin' && <SubNavItem to="/dashboard/schools" label="Data Sekolah" />}
-              <SubNavItem to="/dashboard/academic-years" label="Tahun & Semester" />
-              <SubNavItem to="/dashboard/classes" label="Data Kelas" />
-              <SubNavItem to="/dashboard/teachers" label="Data Guru" />
-              <SubNavItem to="/dashboard/students" label="Data Siswa" />
-              <SubNavItem to="/dashboard/parents" label="Data Orang Tua" />
-              <SubNavItem to="/dashboard/mappings" label="Pemetaan Data" />
-              <SubNavItem to="/dashboard/holidays" label="Hari Libur" />
-              <SubNavItem to="/dashboard/habits" label="7 Kebiasaan" />
-              <SubNavItem to="/dashboard/predicates" label="Predikat Nilai" />
-              {hasModule('badge') && <SubNavItem to="/dashboard/badges" label="Master Badge" />}
+              {user?.role === 'superadmin' && (
+                <SubNavItem to="/dashboard/schools" label="Data Sekolah" />
+              )}
+              {user?.role === 'admin' && (
+                <>
+                  <SubNavItem to="/dashboard/academic-years" label="Tahun & Semester" />
+                  <SubNavItem to="/dashboard/classes" label="Data Kelas" />
+                  <SubNavItem to="/dashboard/teachers" label="Data Guru" />
+                  <SubNavItem to="/dashboard/students" label="Data Siswa" />
+                  <SubNavItem to="/dashboard/parents" label="Data Orang Tua" />
+                  <SubNavItem to="/dashboard/mappings" label="Pemetaan Data" />
+                  <SubNavItem to="/dashboard/import-data" label="Import Data" />
+                  <SubNavItem to="/dashboard/holidays" label="Hari Libur" />
+                  <SubNavItem to="/dashboard/habits" label="7 Kebiasaan" />
+                  <SubNavItem to="/dashboard/predicates" label="Predikat Nilai" />
+                  {hasModule('badge') && <SubNavItem to="/dashboard/badges" label="Master Badge" />}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -139,14 +149,14 @@ const DashboardLayout = () => {
       )}
 
       {/* Sidebar Drawer */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 shadow-2xl lg:shadow-none lg:static transform transition-transform duration-300 ease-in-out ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 shadow-2xl lg:shadow-none lg:static transform transition-transform duration-300 ease-in-out print:hidden ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {sidebarContent}
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:h-auto print:overflow-visible print:bg-white">
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 h-16 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 print:hidden">
           <div className="flex items-center gap-3">
             <button onClick={() => setIsMobileOpen(true)} className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg lg:hidden">
               <Menu size={20} />
@@ -180,8 +190,8 @@ const DashboardLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 print:p-0 print:overflow-visible print:bg-white">
+          <div className="max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 print:max-w-none print:w-full print:animate-none">
             <Outlet />
           </div>
         </main>

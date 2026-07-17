@@ -20,6 +20,7 @@ import HolidayListPage from './pages/master/HolidayListPage';
 import HabitListPage from './pages/master/HabitListPage';
 import PredicateListPage from './pages/master/PredicateListPage';
 import MappingPage from './pages/master/MappingPage';
+import ImportDataPage from './pages/master/ImportDataPage';
 import MonitoringPage from './pages/monitoring/MonitoringPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import SchoolProfilePage from './pages/master/SchoolProfilePage';
@@ -67,6 +68,7 @@ function App() {
               <Route path="habits" element={<HabitListPage />} />
               <Route path="predicates" element={<PredicateListPage />} />
               <Route path="mappings" element={<MappingPage />} />
+              <Route path="import-data" element={<ImportDataPage />} />
               
               <Route path="monitoring" element={<MonitoringPage />} />
               <Route path="class-comparison" element={<ClassComparisonPage />} />

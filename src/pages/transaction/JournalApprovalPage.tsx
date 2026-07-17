@@ -17,6 +17,7 @@ interface Journal {
     habit_id: number;
     is_done: boolean;
     note: string | null;
+    habit?: { name: string };
   }[];
   teacher_approval: {
     status: string;
@@ -249,7 +250,7 @@ const JournalApprovalPage = () => {
                     </button>
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${detail.is_done ? 'text-gray-800' : 'text-gray-500'}`}>
-                        Kebiasaan #{detail.habit_id}
+                        {detail.habit?.name || `Kebiasaan #${detail.habit_id}`}
                       </p>
                       {detail.note && (
                         <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded-md italic">"{detail.note}"</p>
