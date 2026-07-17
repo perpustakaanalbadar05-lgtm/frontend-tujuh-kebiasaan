@@ -8,6 +8,13 @@ interface SchoolClass {
   grade: string;
   active: boolean;
   academic_year_id: number;
+  teacher_id?: number;
+  teacher?: { id: number, name: string };
+}
+
+interface Teacher {
+  id: number;
+  name: string;
 }
 
 const ClassListPage = () => {
@@ -17,9 +24,19 @@ const ClassListPage = () => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<SchoolClass | null>(null);
-  const [form, setForm] = useState({ name: '', grade: '', academic_year_id: '' });
+  const [form, setForm] = useState({ name: '', grade: '', academic_year_id: '', teacher_id: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+
+  const fetchTeachers = async () => {
+    try {
+      const res = await axios.get('/master/teachers?per_page=100'); // Assuming it supports per_page or fetching all
+      if (res.data.success) {
+        setTeachers(res.data.data.data || res.data.data);
+      }
+    } catch { /* empty */ }
+  };
 
   const fetchData = useCallback(async (page = 1) => {
     setIsLoading(true);
@@ -28,24 +45,32 @@ const ClassListPage = () => {
       if (search) params.search = search;
       const res = await axios.get('/master/classes', { params });
       if (res.data.success) {
-        const d = res.data.data;
-        setClasses(d.data);
-        setPagination({ current_page: d.current_page, last_page: d.last_page, total: d.total });
+        // Backend returns an array directly, not paginated
+        const classArray = Array.isArray(res.data.data) ? res.data.data : [];
+        setClasses(classArray);
+        setPagination({ current_page: 1, last_page: 1, total: classArray.length });
       }
     } catch { /* empty */ } finally { setIsLoading(false); }
   }, [search]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { 
+    fetchData(); 
+    fetchTeachers();
+  }, [fetchData]);
 
-  const openAdd = () => { setEditingItem(null); setForm({ name: '', grade: '', academic_year_id: '' }); setErrorMsg(''); setShowModal(true); };
-  const openEdit = (c: SchoolClass) => { setEditingItem(c); setForm({ name: c.name, grade: c.grade, academic_year_id: String(c.academic_year_id) }); setErrorMsg(''); setShowModal(true); };
+  const openAdd = () => { setEditingItem(null); setForm({ name: '', grade: '', academic_year_id: '', teacher_id: '' }); setErrorMsg(''); setShowModal(true); };
+  const openEdit = (c: SchoolClass) => { setEditingItem(c); setForm({ name: c.name, grade: c.grade, academic_year_id: String(c.academic_year_id), teacher_id: c.teacher_id ? String(c.teacher_id) : '' }); setErrorMsg(''); setShowModal(true); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg('');
     try {
-      const payload = { ...form, academic_year_id: Number(form.academic_year_id) || 1 };
+      const payload = { 
+        ...form, 
+        academic_year_id: Number(form.academic_year_id) || 1,
+        teacher_id: form.teacher_id ? Number(form.teacher_id) : null
+      };
       if (editingItem) {
         await axios.put(`/master/classes/${editingItem.id}`, payload);
       } else {
@@ -101,6 +126,7 @@ const ClassListPage = () => {
               <thead><tr className="bg-gray-50 border-b border-gray-100">
                 <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Kelas</th>
                 <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tingkat</th>
+                <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Wali Kelas</th>
                 <th className="text-center px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="text-center px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
               </tr></thead>
@@ -109,6 +135,7 @@ const ClassListPage = () => {
                   <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-gray-800">{c.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">Kelas {c.grade}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{c.teacher ? c.teacher.name : <span className="text-gray-400 italic">Belum diatur</span>}</td>
                     <td className="px-6 py-4 text-center">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${c.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                         {c.active ? 'Aktif' : 'Nonaktif'}
@@ -157,6 +184,14 @@ const ClassListPage = () => {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] bg-white">
                   <option value="">Pilih Tingkat</option>
                   {gradeOptions.map(g => <option key={g} value={g}>Kelas {g}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Wali Kelas (Opsional)</label>
+                <select value={form.teacher_id} onChange={e => setForm({...form, teacher_id: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] bg-white">
+                  <option value="">Pilih Guru / Wali Kelas</option>
+                  {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
               <div className="flex justify-end gap-3 pt-2">

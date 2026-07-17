@@ -39,14 +39,13 @@ const DashboardLayout = () => {
     setOpenMenus(prev => ({ ...prev, [menu]: !prev[menu] }));
   };
 
-  const NavItem = ({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) => (
+  const NavItem = ({ to, label }: { to: string; label: string }) => (
     <NavLink 
       to={to} 
       end={to === '/dashboard'}
-      className={({isActive}) => `flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${isActive ? 'bg-[#4CAF50] text-white shadow-md shadow-green-500/20' : 'text-gray-600 hover:bg-green-50 hover:text-[#2E7D32]'}`}
+      className={({isActive}) => `block px-5 py-3 rounded-xl font-medium transition-all duration-200 ${isActive ? 'bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white shadow-lg shadow-green-500/30 tracking-wide' : 'text-gray-600 hover:bg-gray-50 hover:text-[#2E7D32] hover:pl-6'}`}
     >
-      <div className="w-5 h-5 flex items-center justify-center">{icon}</div>
-      <span>{label}</span>
+      {label}
     </NavLink>
   );
 
@@ -72,26 +71,26 @@ const DashboardLayout = () => {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-        <NavItem to="/dashboard" icon="📊" label="Dashboard" />
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1.5">
+        <NavItem to="/dashboard" label="Dashboard" />
 
         {user?.role === 'siswa' && (
           <>
-            <NavItem to="/dashboard/journal" icon="📝" label="Jurnal Harian" />
-            {hasModule('badge') && <NavItem to="/dashboard/achievements" icon="🏆" label="Koleksi Lencana" />}
+            <NavItem to="/dashboard/journal" label="Jurnal Harian" />
+            {hasModule('badge') && <NavItem to="/dashboard/achievements" label="Koleksi Lencana" />}
           </>
         )}
-        {(isAdmin || isTeacher || user?.role === 'orangtua') && <NavItem to="/dashboard/approvals" icon="✅" label="Validasi Jurnal" />}
+        {(isAdmin || isTeacher || user?.role === 'orangtua') && <NavItem to="/dashboard/approvals" label="Validasi Jurnal" />}
         
-        {hasModule('kalender') && <NavItem to="/dashboard/calendar" icon="📅" label="Kalender Akademik" />}
-        <NavItem to="/dashboard/announcements" icon={<Megaphone size={18} />} label="Pengumuman" />
+        {hasModule('kalender') && <NavItem to="/dashboard/calendar" label="Kalender Akademik" />}
+        <NavItem to="/dashboard/announcements" label="Pengumuman" />
         
         {(isAdmin || isTeacher) && (
           <>
-            <NavItem to="/dashboard/monitoring" icon={<BarChart3 size={18} />} label="Monitoring" />
-            <NavItem to="/dashboard/class-comparison" icon="📈" label="Analitik Kelas" />
-            <NavItem to="/dashboard/reports" icon="📄" label="Laporan" />
-            {hasModule('evaluasi') && <NavItem to="/dashboard/evaluations" icon="📋" label="Evaluasi" />}
+            <NavItem to="/dashboard/monitoring" label="Monitoring" />
+            <NavItem to="/dashboard/class-comparison" label="Analitik Kelas" />
+            <NavItem to="/dashboard/reports" label="Laporan" />
+            {hasModule('evaluasi') && <NavItem to="/dashboard/evaluations" label="Evaluasi" />}
           </>
         )}
 
@@ -99,16 +98,13 @@ const DashboardLayout = () => {
           <div className="pt-2">
             <button 
               onClick={() => toggleMenu('master')}
-              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl font-medium transition-colors ${openMenus['master'] ? 'bg-gray-50 text-gray-800' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center justify-between px-5 py-3 rounded-xl font-medium transition-all duration-200 ${openMenus['master'] ? 'bg-gray-50 text-gray-800' : 'text-gray-600 hover:bg-gray-50 hover:text-[#2E7D32] hover:pl-6'}`}
             >
-              <div className="flex items-center gap-3">
-                <Database size={18} className="text-gray-500" />
-                <span>Master Data</span>
-              </div>
+              <span>Master Data</span>
               {openMenus['master'] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
             
-            <div className={`mt-1 space-y-1 overflow-hidden transition-all duration-200 pl-4 ${openMenus['master'] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`mt-1 space-y-1 overflow-hidden transition-all duration-300 pl-4 ${openMenus['master'] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
               {user?.role === 'superadmin' && <SubNavItem to="/dashboard/schools" label="Data Sekolah" />}
               <SubNavItem to="/dashboard/academic-years" label="Tahun & Semester" />
               <SubNavItem to="/dashboard/classes" label="Data Kelas" />
@@ -125,11 +121,11 @@ const DashboardLayout = () => {
         )}
 
         {isAdmin && (
-          <>
-            <NavItem to="/dashboard/school-profile" icon="🏫" label="Profil Sekolah" />
-            {hasModule('timeline') && <NavItem to="/dashboard/activity-logs" icon="🕵️‍♂️" label="Log Sistem" />}
-            <NavItem to="/dashboard/settings" icon="⚙️" label="Pengaturan" />
-          </>
+          <div className="pt-2 border-t border-gray-100 mt-4 space-y-1.5">
+            <NavItem to="/dashboard/school-profile" label="Profil Sekolah" />
+            {hasModule('timeline') && <NavItem to="/dashboard/activity-logs" label="Log Sistem" />}
+            <NavItem to="/dashboard/settings" label="Pengaturan" />
+          </div>
         )}
       </nav>
     </div>
