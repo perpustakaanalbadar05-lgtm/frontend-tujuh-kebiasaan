@@ -11,20 +11,21 @@ const AuthLayout = () => {
           <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[#2E7D32] blur-[120px]" />
         </div>
         
-        {/* Main Illustration */}
-        <div className="relative z-10 text-center flex flex-col items-center">
-          <div className="mb-8 w-80 h-80 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 p-4 shadow-xl flex items-center justify-center">
-            {/* Generated illustration image */}
-            <img 
-              src="/login-illustration.png" 
-              alt="G7KAIH Education Illustration" 
-              className="w-full h-full object-cover rounded-xl"
-            />
+        {/* Main Typography */}
+        <div className="relative z-10 flex flex-col items-start w-full max-w-lg px-8">
+          <div className="mb-6 inline-flex items-center justify-center px-4 py-2 rounded-full bg-white/40 backdrop-blur-md border border-white/60 shadow-sm">
+            <span className="text-[#2E7D32] font-semibold text-sm tracking-widest uppercase">Portal Sistem G7KAIH</span>
           </div>
-          <h1 className="text-4xl font-bold text-[#2E7D32] mb-4">
-            Gerakan 7 Kebiasaan<br/>Anak Indonesia Hebat
+          
+          <h1 className="text-6xl lg:text-7xl font-extrabold text-[#1B5E20] leading-tight mb-6 tracking-tight">
+            Gerakan <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4CAF50] to-[#2E7D32]">
+              7 Kebiasaan
+            </span> <br />
+            Anak Hebat.
           </h1>
-          <p className="text-[#333333] text-lg max-w-md">
+          
+          <p className="text-[#333333] text-xl font-medium max-w-md leading-relaxed border-l-4 border-[#4CAF50] pl-6">
             Platform digital terintegrasi untuk mencetak generasi penerus bangsa yang berkarakter, cerdas, dan tangguh.
           </p>
         </div>
