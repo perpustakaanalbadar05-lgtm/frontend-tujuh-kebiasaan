@@ -4,6 +4,7 @@ import { Users, GraduationCap, CheckSquare, Activity, Loader2 } from 'lucide-rea
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import axios from '../../lib/axios';
 import YayasanDashboard from './YayasanDashboard';
+import StudentDashboard from './StudentDashboard';
 import SetupWizardModal from '../../components/SetupWizardModal';
 
 interface ChartData {
@@ -52,6 +53,10 @@ const DashboardPage = () => {
 
   if (stats.type === 'yayasan') {
     return <YayasanDashboard data={stats as any} />;
+  }
+
+  if (stats.type === 'student') {
+    return <StudentDashboard data={stats as any} />;
   }
 
   return (
