@@ -346,11 +346,31 @@ const StudentListPage = () => {
               
               <div className="bg-blue-50 border border-blue-100 text-blue-700 p-4 rounded-xl text-sm leading-relaxed mb-4">
                 <p className="font-bold mb-1">Panduan Import:</p>
-                <ul className="list-disc pl-5 space-y-1">
+                <ul className="list-disc pl-5 space-y-1 mb-3">
                   <li>Pastikan file berformat <b>.xlsx</b> atau <b>.csv</b>.</li>
-                  <li>Header kolom (baris 1) wajib: <b>nis, nama, jenis_kelamin</b>.</li>
-                  <li>Sistem akan otomatis membuatkan akun user dengan password default sama dengan NIS.</li>
+                  <li>Header kolom (baris 1) wajib mengikuti format template.</li>
+                  <li>Sistem otomatis membuatkan akun dengan password NIP/NIS.</li>
                 </ul>
+                <button 
+                  type="button" 
+                  onClick={async () => {
+                    try {
+                      const response = await axios.get('/master/students/template', { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([response.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', 'template_data_siswa.xlsx');
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                    } catch (error) {
+                      alert('Gagal mengunduh template');
+                    }
+                  }}
+                  className="bg-white border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-medium flex items-center gap-2 hover:bg-blue-50 transition-colors shadow-sm text-xs"
+                >
+                  <Download size={14} /> Unduh Template Excel
+                </button>
               </div>
 
               <div className="space-y-2">
