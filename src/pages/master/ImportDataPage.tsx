@@ -3,7 +3,7 @@ import { Loader2, Upload, FileSpreadsheet, Download, CheckCircle2, AlertCircle }
 import axios from '../../lib/axios';
 
 const ImportDataPage = () => {
-  const [activeTab, setActiveTab] = useState<'siswa' | 'guru'>('siswa');
+  const [activeTab, setActiveTab] = useState<'siswa' | 'guru' | 'orangtua'>('siswa');
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -17,8 +17,18 @@ const ImportDataPage = () => {
 
   const handleDownloadTemplate = async () => {
     try {
-      const endpoint = activeTab === 'siswa' ? '/master/students/template' : '/master/teachers/template';
-      const filename = activeTab === 'siswa' ? 'template_data_siswa.xlsx' : 'template_data_guru.xlsx';
+      let endpoint = '';
+      let filename = '';
+      if (activeTab === 'siswa') {
+        endpoint = '/master/students/template';
+        filename = 'template_data_siswa.xlsx';
+      } else if (activeTab === 'guru') {
+        endpoint = '/master/teachers/template';
+        filename = 'template_data_guru.xlsx';
+      } else {
+        endpoint = '/master/parents/template';
+        filename = 'template_data_orangtua.xlsx';
+      }
       
       const response = await axios.get(endpoint, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -46,7 +56,10 @@ const ImportDataPage = () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const endpoint = activeTab === 'siswa' ? '/import/students' : '/import/teachers';
+    let endpoint = '';
+    if (activeTab === 'siswa') endpoint = '/import/students';
+    else if (activeTab === 'guru') endpoint = '/import/teachers';
+    else endpoint = '/import/parents';
 
     try {
       const response = await axios.post(endpoint, formData, {
@@ -93,6 +106,13 @@ const ImportDataPage = () => {
             Data Guru
             {activeTab === 'guru' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4CAF50] rounded-t-md"></div>}
           </button>
+          <button
+            onClick={() => { setActiveTab('orangtua'); setFile(null); setMessage({text:'', type:''}); }}
+            className={`pb-3 font-semibold text-sm transition-colors relative ${activeTab === 'orangtua' ? 'text-[#4CAF50]' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Data Orang Tua
+            {activeTab === 'orangtua' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4CAF50] rounded-t-md"></div>}
+          </button>
         </div>
 
         {/* Content */}
@@ -114,7 +134,7 @@ const ImportDataPage = () => {
               onClick={handleDownloadTemplate}
               className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-sm w-full sm:w-auto"
             >
-              <Download size={18} /> Unduh Template {activeTab === 'siswa' ? 'Siswa' : 'Guru'}
+              <Download size={18} /> Unduh Template {activeTab === 'siswa' ? 'Siswa' : (activeTab === 'guru' ? 'Guru' : 'Orang Tua')}
             </button>
           </div>
 
