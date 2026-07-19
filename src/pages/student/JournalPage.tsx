@@ -24,6 +24,7 @@ const JournalPage = () => {
   const [formState, setFormState] = useState<JournalForm[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     const fetchHabits = async () => {
@@ -33,13 +34,21 @@ const JournalPage = () => {
           const fetchedHabits = response.data.data;
           setHabits(fetchedHabits);
           
+          // Fetch jurnal hari ini jika ada
+          const todayRes = await axios.get('/journals/today');
+          const todayJournal = todayRes.data?.data?.journal;
+          setIsLocked(todayRes.data?.data?.is_locked || false);
+
           // Inisialisasi state form
-          const initialForm = fetchedHabits.map((h: Habit) => ({
-            habit_id: h.id,
-            is_done: false,
-            time_performed: '',
-            note: ''
-          }));
+          const initialForm = fetchedHabits.map((h: Habit) => {
+            const detail = todayJournal?.details?.find((d: any) => d.habit_id === h.id);
+            return {
+              habit_id: h.id,
+              is_done: detail ? detail.is_done : false,
+              time_performed: detail?.time_performed?.substring(0, 5) || '',
+              note: detail?.note || ''
+            };
+          });
           setFormState(initialForm);
         }
       } catch (error) {
@@ -182,10 +191,16 @@ const JournalPage = () => {
         </div>
       )}
 
+      {isLocked && (
+        <div className="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded-xl flex items-start gap-3">
+          <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          <p className="text-sm font-medium">Jurnal hari ini telah divalidasi oleh Guru/Orang Tua dan tidak dapat diubah lagi (Terkunci 🔒).</p>
+        </div>
+      )}
+
       {/* Form List */}
-      {!successMsg && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
             {habits.map((habit, index) => {
               const state = formState.find(s => s.habit_id === habit.id);
               const isDone = state?.is_done || false;
@@ -207,6 +222,7 @@ const JournalPage = () => {
                               type="time"
                               required={isDone}
                               readOnly
+                              disabled={isLocked}
                               value={state?.time_performed || ''}
                               className="w-full text-sm px-3 py-2 bg-gray-100 border border-gray-200 text-gray-600 rounded-lg focus:outline-none cursor-not-allowed transition-colors"
                             />
@@ -216,9 +232,10 @@ const JournalPage = () => {
                             <input
                               type="text"
                               placeholder="Misal: Tepat waktu..."
+                              disabled={isLocked}
                               value={state?.note || ''}
                               onChange={(e) => handleNoteChange(habit.id, e.target.value)}
-                              className="w-full text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] transition-colors"
+                              className="w-full text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] transition-colors disabled:opacity-50"
                             />
                           </div>
                         </div>
@@ -228,8 +245,9 @@ const JournalPage = () => {
                     {/* Toggle Switch */}
                     <button
                       type="button"
+                      disabled={isLocked}
                       onClick={() => handleToggle(habit.id)}
-                      className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isDone ? 'bg-[#4CAF50]' : 'bg-gray-200'}`}
+                      className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${isDone ? 'bg-[#4CAF50]' : 'bg-gray-200'}`}
                     >
                       <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isDone ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
@@ -239,25 +257,26 @@ const JournalPage = () => {
             })}
           </div>
 
-          <div className="pt-4 flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-[#4CAF50] hover:bg-[#388E3C] text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-transform transform active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-md hover:shadow-lg"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Mengirim...
-                </>
-              ) : (
-                <>
-                  <Save size={20} /> Simpan Jurnal Hari Ini
-                </>
-              )}
-            </button>
-          </div>
+          {!isLocked && (
+            <div className="pt-4 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-[#4CAF50] hover:bg-[#388E3C] text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-transform transform active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-md hover:shadow-lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Mengirim...
+                  </>
+                ) : (
+                  <>
+                    <Save size={20} /> Simpan Jurnal Hari Ini
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </form>
-      )}
     </div>
   );
 };

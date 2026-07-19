@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Menu, UserCircle, LogOut, ChevronDown, ChevronRight, X, Megaphone, BarChart3, Database } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from '../lib/axios';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -80,6 +81,7 @@ const DashboardLayout = () => {
         {isStudent && (
           <>
             <NavItem to="/dashboard/journal" label="Jurnal Harian" />
+            <NavItem to="/dashboard/journal-history" label="Riwayat Jurnal" />
             {hasModule('badge') && <NavItem to="/dashboard/achievements" label="Koleksi Lencana" />}
           </>
         )}
@@ -169,9 +171,7 @@ const DashboardLayout = () => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <NavLink to="/dashboard/notifications" className={({isActive}) => `relative p-2 rounded-full transition-colors ${isActive ? 'bg-green-50 text-[#4CAF50]' : 'text-gray-500 hover:bg-gray-100'}`}>
-              <div className="text-lg">🔔</div>
-            </NavLink>
+            <NotificationDropdown />
 
             <NavLink to="/dashboard/profile" className={({isActive}) => `flex items-center gap-2 p-1.5 pr-3 rounded-full border transition-all ${isActive ? 'border-[#4CAF50] bg-green-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}>
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4CAF50] to-[#2E7D32] flex items-center justify-center text-white shadow-sm">

@@ -6,6 +6,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import StudentListPage from './pages/master/StudentListPage';
 import TeacherListPage from './pages/master/TeacherListPage';
 import JournalPage from './pages/student/JournalPage';
+import JournalHistoryPage from './pages/student/JournalHistoryPage';
 import JournalApprovalPage from './pages/transaction/JournalApprovalPage';
 import ReportPage from './pages/transaction/ReportPage';
 import SettingsPage from './pages/master/SettingsPage';
@@ -51,6 +52,7 @@ function App() {
               <Route path="students" element={<StudentListPage />} />
               <Route path="teachers" element={<TeacherListPage />} />
               <Route path="journal" element={<JournalPage />} />
+              <Route path="journal-history" element={<JournalHistoryPage />} />
               <Route path="approvals" element={<JournalApprovalPage />} />
               <Route path="reports" element={<ReportPage />} />
               <Route path="evaluations" element={<EvaluationPage />} />
