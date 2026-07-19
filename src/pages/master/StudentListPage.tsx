@@ -22,6 +22,7 @@ const StudentListPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [classes, setClasses] = useState<any[]>([]);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -47,8 +48,24 @@ const StudentListPage = () => {
     }
   };
 
+  const fetchClasses = async () => {
+    try {
+      const response = await axios.get('/master/classes');
+      if (response.data.success) {
+        const classData = response.data.data.data || response.data.data;
+        setClasses(classData);
+        if (classData.length > 0) {
+          setFormData(prev => ({...prev, class_id: classData[0].id}));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch classes', error);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
+    fetchClasses();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +77,7 @@ const StudentListPage = () => {
       const response = await axios.post('/master/students', formData);
       if (response.data.success) {
         setIsModalOpen(false);
-        setFormData({ nis: '', name: '', gender: 'L', class_id: 1 });
+        setFormData({ nis: '', name: '', gender: 'L', class_id: classes.length > 0 ? classes[0].id : 1 });
         fetchStudents(); // Refresh data
       }
     } catch (error: any) {
@@ -292,7 +309,10 @@ const StudentListPage = () => {
                     onChange={(e) => setFormData({...formData, class_id: parseInt(e.target.value)})}
                     className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:border-[#4CAF50] bg-white"
                   >
-                    <option value={1}>Kelas 10-A (Dummy)</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                    {classes.length === 0 && <option value={1}>Kelas 10-A (Dummy)</option>}
                   </select>
                 </div>
                 <div className="space-y-2">

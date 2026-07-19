@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 interface Journal {
   id: number;
-  date: string;
+  journal_date: string;
   score: number;
   status: string;
   student: {
@@ -111,7 +111,15 @@ const JournalApprovalPage = () => {
     const t = timePerformed.substring(0, 5);
     const s = start.substring(0, 5);
     const e = end.substring(0, 5);
-    return t < s || t > e;
+    
+    if (s <= e) {
+      // Normal range (e.g. 08:00 to 12:00)
+      return t < s || t > e;
+    } else {
+      // Spans midnight (e.g. 19:30 to 03:00)
+      // Valid if t >= s OR t <= e
+      return !(t >= s || t <= e);
+    }
   };
 
   return (
@@ -174,7 +182,7 @@ const JournalApprovalPage = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Calendar size={14} />
-                          {formatDate(journal.date)}
+                          {formatDate(journal.journal_date)}
                         </div>
                       </td>
                       <td className="p-4 text-center">
@@ -217,7 +225,7 @@ const JournalApprovalPage = () => {
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 bg-gray-50/50">
               <div>
                 <h3 className="text-lg font-bold text-gray-800">Detail Jurnal</h3>
-                <p className="text-sm text-gray-500">{selectedJournal.student.name} • {formatDate(selectedJournal.date)}</p>
+                <p className="text-sm text-gray-500">{selectedJournal.student.name} • {formatDate(selectedJournal.journal_date)}</p>
               </div>
               <button 
                 onClick={() => setSelectedJournal(null)}

@@ -53,10 +53,11 @@ const ReportPage = () => {
       try {
         const response = await axios.get('/students');
         if (response.data.success) {
-          setStudents(response.data.data.data); // Assuming pagination
+          const studentsData = response.data.data.data || response.data.data;
+          setStudents(studentsData || []); 
           // Auto select first student if role is not student
-          if (response.data.data.data.length > 0) {
-              setSelectedStudentId(response.data.data.data[0].id.toString());
+          if (studentsData && studentsData.length > 0) {
+              setSelectedStudentId(studentsData[0].id.toString());
           }
         }
       } catch (err) {
