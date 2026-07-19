@@ -120,7 +120,7 @@ const TeacherListPage = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+    } catch {
       alert('Gagal mengekspor data');
     }
   };
@@ -132,7 +132,7 @@ const TeacherListPage = () => {
         if (response.data.success) {
           alert('Sandi berhasil direset!');
         }
-      } catch (error) {
+      } catch {
         alert('Gagal mereset sandi.');
       }
     }
@@ -350,7 +350,7 @@ const TeacherListPage = () => {
                       document.body.appendChild(link);
                       link.click();
                       link.remove();
-                    } catch (error) {
+                    } catch {
                       alert('Gagal mengunduh template');
                     }
                   }}

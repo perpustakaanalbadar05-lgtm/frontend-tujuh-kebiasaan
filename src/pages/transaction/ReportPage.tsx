@@ -106,7 +106,7 @@ const ReportPage = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+    } catch {
       alert('Gagal mengekspor data laporan');
     }
   };

@@ -20,7 +20,7 @@ const DashboardLayout = () => {
           const mods = response.data.data.settings.active_modules;
           if (mods) setActiveModules(JSON.parse(mods));
         }
-      } catch (err) {
+      } catch {
         // ignore
       }
     };

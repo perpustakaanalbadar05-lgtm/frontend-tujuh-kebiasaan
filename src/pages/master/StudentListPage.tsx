@@ -132,7 +132,7 @@ const StudentListPage = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+    } catch {
       alert('Gagal mengekspor data');
     }
   };
@@ -144,7 +144,7 @@ const StudentListPage = () => {
         if (response.data.success) {
           alert('Sandi berhasil direset!');
         }
-      } catch (error) {
+      } catch {
         alert('Gagal mereset sandi.');
       }
     }
@@ -383,7 +383,7 @@ const StudentListPage = () => {
                       document.body.appendChild(link);
                       link.click();
                       link.remove();
-                    } catch (error) {
+                    } catch {
                       alert('Gagal mengunduh template');
                     }
                   }}

@@ -38,7 +38,7 @@ const ImportDataPage = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+    } catch {
       alert('Gagal mendownload template.');
     }
   };

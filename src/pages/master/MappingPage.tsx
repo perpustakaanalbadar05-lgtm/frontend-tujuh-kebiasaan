@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Loader2, Link, X, Check } from 'lucide-react';
 import axios from '../../lib/axios';
 
@@ -29,7 +29,7 @@ const MappingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const fetchMappings = async () => {
+  const fetchMappings = useCallback(async () => {
     setIsLoading(true);
     try {
       let endpoint = '';
@@ -40,7 +40,7 @@ const MappingPage = () => {
       const res = await axios.get(endpoint);
       if (res.data.success) setMappings(res.data.data);
     } catch { /* empty */ } finally { setIsLoading(false); }
-  };
+  }, [tab]);
 
   const fetchOptions = async () => {
     try {
@@ -63,7 +63,7 @@ const MappingPage = () => {
     } catch { /* empty */ }
   };
 
-  useEffect(() => { fetchMappings(); }, [tab]);
+  useEffect(() => { fetchMappings(); }, [fetchMappings]);
 
   const openAdd = () => { 
     fetchOptions(); 

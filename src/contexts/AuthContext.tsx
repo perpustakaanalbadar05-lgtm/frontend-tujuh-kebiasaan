@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           throw new Error('Gagal mendapatkan profil');
         }
-      } catch (err) {
+      } catch {
         // Jika token tidak valid / expired
         localStorage.removeItem('access_token');
         setToken(null);

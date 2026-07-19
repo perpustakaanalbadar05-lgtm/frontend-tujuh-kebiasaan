@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Activity, Clock, Database, UserCircle, Loader2 } from 'lucide-react';
 import axios from '../../lib/axios';
 
@@ -28,11 +28,7 @@ const ActivityTimelinePage = () => {
   const [audits, setAudits] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [activeTab]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       if (activeTab === 'activity') {
@@ -47,7 +43,11 @@ const ActivityTimelinePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString('id-ID', {

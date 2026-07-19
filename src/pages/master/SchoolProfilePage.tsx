@@ -45,7 +45,7 @@ const SchoolProfilePage = () => {
           if (settings.active_modules) {
             try {
               setActiveModules(JSON.parse(settings.active_modules));
-            } catch (e) {
+            } catch {
               // ignore
             }
           }
