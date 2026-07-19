@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Menu, UserCircle, LogOut, ChevronDown, ChevronRight, X, Megaphone, BarChart3, Database } from 'lucide-react';
+import { Menu, UserCircle, LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from '../lib/axios';
 import NotificationDropdown from '../components/NotificationDropdown';

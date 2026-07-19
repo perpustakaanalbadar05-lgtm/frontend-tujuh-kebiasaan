@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, Trash2, Clock } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bell, Check, Clock } from 'lucide-react';
 import axios from '../lib/axios';
 import { useNavigate } from 'react-router-dom';
 

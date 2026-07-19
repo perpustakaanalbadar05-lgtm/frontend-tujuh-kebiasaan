@@ -106,11 +106,6 @@ const JournalPage = () => {
     ));
   };
 
-  const handleTimeChange = (habitId: number, time_performed: string) => {
-    setFormState(prev => prev.map(item => 
-      item.habit_id === habitId ? { ...item, time_performed } : item
-    ));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
