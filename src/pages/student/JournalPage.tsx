@@ -6,11 +6,14 @@ interface Habit {
   id: number;
   name: string;
   order_number: number;
+  start_time?: string;
+  end_time?: string;
 }
 
 interface JournalForm {
   habit_id: number;
   is_done: boolean;
+  time_performed?: string;
   note: string;
 }
 
@@ -34,6 +37,7 @@ const JournalPage = () => {
           const initialForm = fetchedHabits.map((h: Habit) => ({
             habit_id: h.id,
             is_done: false,
+            time_performed: '',
             note: ''
           }));
           setFormState(initialForm);
@@ -48,15 +52,54 @@ const JournalPage = () => {
     fetchHabits();
   }, []);
 
+  const isTimeOutOfRange = (timePerformed: string, start?: string, end?: string) => {
+    if (!start || !end) return false;
+    const t = timePerformed.substring(0, 5);
+    const s = start.substring(0, 5);
+    const e = end.substring(0, 5);
+    return t < s || t > e;
+  };
+
   const handleToggle = (habitId: number) => {
-    setFormState(prev => prev.map(item => 
-      item.habit_id === habitId ? { ...item, is_done: !item.is_done } : item
-    ));
+    const habit = habits.find(h => h.id === habitId);
+    
+    setFormState(prev => prev.map(item => {
+      if (item.habit_id === habitId) {
+        const willBeDone = !item.is_done;
+        let timePerformed = item.time_performed;
+        
+        // Jika dicentang, otomatis ambil jam perangkat saat ini
+        if (willBeDone) {
+          const now = new Date();
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          timePerformed = `${hours}:${minutes}`;
+
+          // Validasi ketat: Cegah toggle jika di luar jam
+          if (habit && isTimeOutOfRange(timePerformed, habit.start_time, habit.end_time)) {
+            setErrorMsg(`Maaf, batas waktu untuk "${habit.name}" adalah ${habit.start_time?.substring(0,5)} - ${habit.end_time?.substring(0,5)}. Saat ini jam ${timePerformed}.`);
+            return item; // Batalkan perubahan
+          }
+        } else {
+          timePerformed = '';
+        }
+        
+        setErrorMsg(''); // Bersihkan pesan error jika berhasil
+        return { ...item, is_done: willBeDone, time_performed: timePerformed };
+      }
+      return item;
+    }));
   };
 
   const handleNoteChange = (habitId: number, note: string) => {
     setFormState(prev => prev.map(item => 
       item.habit_id === habitId ? { ...item, note } : item
+    ));
+  };
+
+  const handleTimeChange = (habitId: number, time_performed: string) => {
+    setFormState(prev => prev.map(item => 
+      item.habit_id === habitId ? { ...item, time_performed } : item
     ));
   };
 
@@ -156,14 +199,29 @@ const JournalPage = () => {
                       </h4>
                       
                       {/* Optional Note Input (Visible when turned ON) */}
-                      <div className={`mt-3 transition-all duration-300 overflow-hidden ${isDone ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-                        <input
-                          type="text"
-                          placeholder="Catatan tambahan (opsional)..."
-                          value={state?.note || ''}
-                          onChange={(e) => handleNoteChange(habit.id, e.target.value)}
-                          className="w-full text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] transition-colors"
-                        />
+                      <div className={`mt-3 transition-all duration-300 overflow-hidden ${isDone ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <div className="w-full sm:w-1/3">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Jam Tercatat (Otomatis)</label>
+                            <input
+                              type="time"
+                              required={isDone}
+                              readOnly
+                              value={state?.time_performed || ''}
+                              className="w-full text-sm px-3 py-2 bg-gray-100 border border-gray-200 text-gray-600 rounded-lg focus:outline-none cursor-not-allowed transition-colors"
+                            />
+                          </div>
+                          <div className="w-full sm:w-2/3">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Catatan (Opsional)</label>
+                            <input
+                              type="text"
+                              placeholder="Misal: Tepat waktu..."
+                              value={state?.note || ''}
+                              onChange={(e) => handleNoteChange(habit.id, e.target.value)}
+                              className="w-full text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] transition-colors"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
 

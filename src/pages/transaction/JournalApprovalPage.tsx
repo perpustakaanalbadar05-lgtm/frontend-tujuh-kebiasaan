@@ -17,7 +17,8 @@ interface Journal {
     habit_id: number;
     is_done: boolean;
     note: string | null;
-    habit?: { name: string };
+    time_performed?: string | null;
+    habit?: { name: string; start_time?: string; end_time?: string };
   }[];
   teacher_approval: {
     status: string;
@@ -103,6 +104,14 @@ const JournalApprovalPage = () => {
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('id-ID', options);
+  };
+
+  const isTimeOutOfRange = (timePerformed?: string | null, start?: string, end?: string) => {
+    if (!timePerformed || !start || !end) return false;
+    const t = timePerformed.substring(0, 5);
+    const s = start.substring(0, 5);
+    const e = end.substring(0, 5);
+    return t < s || t > e;
   };
 
   return (
@@ -249,9 +258,23 @@ const JournalApprovalPage = () => {
                       )}
                     </button>
                     <div className="flex-1">
-                      <p className={`text-sm font-medium ${detail.is_done ? 'text-gray-800' : 'text-gray-500'}`}>
-                        {detail.habit?.name || `Kebiasaan #${detail.habit_id}`}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm font-medium ${detail.is_done ? 'text-gray-800' : 'text-gray-500'}`}>
+                          {detail.habit?.name || `Kebiasaan #${detail.habit_id}`}
+                        </p>
+                        {detail.is_done && detail.time_performed && (
+                          <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono">
+                            {detail.time_performed.substring(0, 5)}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {detail.is_done && detail.time_performed && isTimeOutOfRange(detail.time_performed, detail.habit?.start_time, detail.habit?.end_time) && (
+                        <p className="text-[11px] text-red-600 flex items-center gap-1 mt-1 font-semibold">
+                          ⚠️ Di luar jam valid ({detail.habit?.start_time?.substring(0,5)} - {detail.habit?.end_time?.substring(0,5)})
+                        </p>
+                      )}
+
                       {detail.note && (
                         <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded-md italic">"{detail.note}"</p>
                       )}
