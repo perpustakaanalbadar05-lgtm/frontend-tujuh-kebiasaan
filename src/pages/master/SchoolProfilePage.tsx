@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Save, Loader2, Upload, MapPin, Mail, Phone, Hash, Clock, UserCheck, Settings } from 'lucide-react';
+import { Building2, Save, Loader2, Upload, MapPin, Mail, Phone, Hash, UserCheck, Settings } from 'lucide-react';
 import axios from '../../lib/axios';
 
 const SchoolProfilePage = () => {
@@ -14,8 +14,6 @@ const SchoolProfilePage = () => {
     address: '',
     theme_color: '#4CAF50',
     principal_name: '',
-    journal_start_time: '00:00',
-    journal_end_time: '23:59',
   });
   
   const [activeModules, setActiveModules] = useState<string[]>(['timeline', 'badge', 'evaluasi', 'kalender']);
@@ -38,8 +36,6 @@ const SchoolProfilePage = () => {
             address: school.address || '',
             theme_color: school.theme_color || '#4CAF50',
             principal_name: settings.principal_name || '',
-            journal_start_time: settings.journal_start_time || '00:00',
-            journal_end_time: settings.journal_end_time || '23:59',
           });
           
           if (settings.active_modules) {
@@ -51,7 +47,7 @@ const SchoolProfilePage = () => {
           }
 
           if (school.logo) {
-            setLogoPreview(`${import.meta.env.VITE_API_URL.replace('/api', '')}/storage/${school.logo}`);
+            setLogoPreview(`${import.meta.env.VITE_API_URL.replace(/\/api$/, '')}/file-storage/${school.logo}`);
           }
         }
       } catch (error) {
@@ -208,25 +204,6 @@ const SchoolProfilePage = () => {
           </div>
         </div>
 
-        {/* Pengaturan Aplikasi */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-          <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
-            <Clock className="text-blue-500" /> Operasional Jurnal
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Jam Buka Pengisian Jurnal</label>
-              <input type="time" value={formData.journal_start_time} onChange={(e) => setFormData({...formData, journal_start_time: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
-              <p className="text-xs text-gray-500 mt-1">Siswa tidak dapat mengisi jurnal sebelum jam ini.</p>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Batas Akhir (Tutup) Jurnal</label>
-              <input type="time" value={formData.journal_end_time} onChange={(e) => setFormData({...formData, journal_end_time: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
-              <p className="text-xs text-gray-500 mt-1">Siswa tidak dapat mengisi jurnal hari tersebut setelah jam ini.</p>
-            </div>
-          </div>
-        </div>
 
         {/* Konfigurasi Modul */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">

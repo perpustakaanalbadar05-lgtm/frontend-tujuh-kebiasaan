@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Loader2, Link, X, Check } from 'lucide-react';
 import axios from '../../lib/axios';
+import SearchableSelect from '../../components/SearchableSelect';
 
 const MappingPage = () => {
   const [tab, setTab] = useState<'teacher_class' | 'parent_student' | 'teacher_student'>('teacher_class');
@@ -45,15 +46,15 @@ const MappingPage = () => {
   const fetchOptions = async () => {
     try {
       if (tab === 'teacher_class') {
-        const [t, c] = await Promise.all([axios.get('/master/teachers?per_page=100'), axios.get('/master/classes?per_page=100')]);
+        const [t, c] = await Promise.all([axios.get('/master/teachers?per_page=1000'), axios.get('/master/classes?per_page=1000')]);
         setTeachers(t.data.data.data || t.data.data); setClasses(c.data.data.data || c.data.data);
       } else if (tab === 'parent_student') {
-        const [p, s] = await Promise.all([axios.get('/master/parents?per_page=100'), axios.get('/master/students?per_page=100')]);
+        const [p, s] = await Promise.all([axios.get('/master/parents?per_page=1000'), axios.get('/master/students?per_page=1000')]);
         setParents(p.data.data.data || p.data.data); setStudents(s.data.data.data || s.data.data);
       } else if (tab === 'teacher_student') {
         const [t, c, s] = await Promise.all([
-          axios.get('/master/teachers?per_page=100'), 
-          axios.get('/master/classes?per_page=100'),
+          axios.get('/master/teachers?per_page=1000'), 
+          axios.get('/master/classes?per_page=1000'),
           axios.get('/master/students?per_page=1000') // Ambil agak banyak untuk filter kelas
         ]);
         setTeachers(t.data.data.data || t.data.data); 
@@ -230,16 +231,31 @@ const MappingPage = () => {
                 
                 {tab === 'teacher_class' && (
                   <>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Guru *</label><select required value={form.teacher_id} onChange={e => setForm({...form, teacher_id: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 bg-white"><option value="">Pilih...</option>{teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Kelas *</label><select required value={form.class_id} onChange={e => setForm({...form, class_id: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 bg-white"><option value="">Pilih...</option>{classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Guru *</label>
+                      <SearchableSelect required value={form.teacher_id} onChange={val => setForm({...form, teacher_id: String(val)})} options={teachers.map(t => ({ value: t.id, label: t.name }))} placeholder="Pilih Guru..." />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Kelas *</label>
+                      <SearchableSelect required value={form.class_id} onChange={val => setForm({...form, class_id: String(val)})} options={classes.map(c => ({ value: c.id, label: c.name }))} placeholder="Pilih Kelas..." />
+                    </div>
                   </>
                 )}
 
                 {tab === 'parent_student' && (
                   <>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Orang Tua *</label><select required value={form.parent_id} onChange={e => setForm({...form, parent_id: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 bg-white"><option value="">Pilih...</option>{parents.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Siswa (Anak) *</label><select required value={form.student_id} onChange={e => setForm({...form, student_id: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 bg-white"><option value="">Pilih...</option>{students.map(s => <option key={s.id} value={s.id}>{s.name} ({s.nis})</option>)}</select></div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Relasi</label><select required value={form.relationship} onChange={e => setForm({...form, relationship: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 bg-white"><option value="Ayah">Ayah</option><option value="Ibu">Ibu</option><option value="Wali">Wali</option></select></div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Orang Tua *</label>
+                      <SearchableSelect required value={form.parent_id} onChange={val => setForm({...form, parent_id: String(val)})} options={parents.map(p => ({ value: p.id, label: p.name }))} placeholder="Pilih Orang Tua..." />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Siswa (Anak) *</label>
+                      <SearchableSelect required value={form.student_id} onChange={val => setForm({...form, student_id: String(val)})} options={students.map(s => ({ value: s.id, label: `${s.name} (${s.nis})` }))} placeholder="Pilih Siswa..." />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Relasi</label>
+                      <SearchableSelect required value={form.relationship} onChange={val => setForm({...form, relationship: String(val)})} options={[{value: 'Ayah', label: 'Ayah'}, {value: 'Ibu', label: 'Ibu'}, {value: 'Wali', label: 'Wali'}]} placeholder="Pilih Relasi..." />
+                    </div>
                   </>
                 )}
 
@@ -247,10 +263,7 @@ const MappingPage = () => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Guru Validator *</label>
-                      <select required value={form.teacher_id} onChange={e => setForm({...form, teacher_id: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 bg-white">
-                        <option value="">Pilih...</option>
-                        {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                      </select>
+                      <SearchableSelect required value={form.teacher_id} onChange={val => setForm({...form, teacher_id: String(val)})} options={teachers.map(t => ({ value: t.id, label: t.name }))} placeholder="Pilih Guru Validator..." />
                     </div>
                     
                     <div className="pt-4 border-t border-gray-100">

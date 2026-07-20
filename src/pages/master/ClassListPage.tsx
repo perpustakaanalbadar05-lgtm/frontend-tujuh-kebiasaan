@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit2, Trash2, Loader2, BookOpen, X, Check } from 'lucide-react';
 import axios from '../../lib/axios';
+import SearchableSelect from '../../components/SearchableSelect';
 
 interface SchoolClass {
   id: number;
@@ -31,7 +32,7 @@ const ClassListPage = () => {
 
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get('/master/teachers?per_page=100'); // Assuming it supports per_page or fetching all
+      const res = await axios.get('/master/teachers?per_page=1000'); // Assuming it supports per_page or fetching all
       if (res.data.success) {
         setTeachers(res.data.data.data || res.data.data);
       }
@@ -188,11 +189,12 @@ const ClassListPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Wali Kelas (Opsional)</label>
-                <select value={form.teacher_id} onChange={e => setForm({...form, teacher_id: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/30 focus:border-[#4CAF50] bg-white">
-                  <option value="">Pilih Guru / Wali Kelas</option>
-                  {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+                <SearchableSelect
+                  value={form.teacher_id}
+                  onChange={(val) => setForm({...form, teacher_id: String(val)})}
+                  options={teachers.map(t => ({ value: t.id, label: t.name }))}
+                  placeholder="Pilih Guru / Wali Kelas..."
+                />
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50">Batal</button>

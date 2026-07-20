@@ -45,7 +45,7 @@ const JournalApprovalPage = () => {
   };
 
   const handleToggleDetail = (detailId: number) => {
-    if (user?.role !== 'orangtua') return;
+    if (user?.role !== 'orangtua' && user?.role !== 'guru') return;
     setOverriddenDetails(prev => 
       prev.map(d => d.id === detailId ? { ...d, is_done: !d.is_done } : d)
     );
@@ -79,10 +79,8 @@ const JournalApprovalPage = () => {
     try {
       const payload = {
         status,
-        ...(endpointRole === 'parent' ? { 
-          note: actionNote,
-          overrides: overriddenDetails.map(d => ({ id: d.id, is_done: d.is_done }))
-        } : {})
+        note: actionNote,
+        overrides: overriddenDetails.map(d => ({ id: d.id, is_done: d.is_done }))
       };
       
       const response = await axios.post(`/journals/${selectedJournal.id}/approve-${endpointRole}`, payload);
@@ -245,7 +243,7 @@ const JournalApprovalPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Rincian Kebiasaan</h4>
-                  {user?.role === 'orangtua' && (
+                  {(user?.role === 'orangtua' || user?.role === 'guru') && (
                     <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-semibold border border-blue-100">
                       Klik ikon centang untuk mengubah
                     </span>
@@ -256,8 +254,8 @@ const JournalApprovalPage = () => {
                     <button 
                       type="button"
                       onClick={() => handleToggleDetail(detail.id)}
-                      disabled={user?.role !== 'orangtua'}
-                      className={`mt-0.5 focus:outline-none transition-transform ${user?.role === 'orangtua' ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}`}
+                      disabled={user?.role !== 'orangtua' && user?.role !== 'guru'}
+                      className={`mt-0.5 focus:outline-none transition-transform ${(user?.role === 'orangtua' || user?.role === 'guru') ? 'hover:scale-110 cursor-pointer' : 'cursor-default'}`}
                     >
                       {detail.is_done ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
@@ -291,7 +289,7 @@ const JournalApprovalPage = () => {
                 ))}
               </div>
               
-              {user?.role === 'orangtua' && (
+              {(user?.role === 'orangtua' || user?.role === 'guru') && (
                 <div className="pt-2">
                   <label className="block text-xs font-bold text-gray-700 mb-2">Catatan/Pesan Tambahan (Opsional)</label>
                   <textarea 

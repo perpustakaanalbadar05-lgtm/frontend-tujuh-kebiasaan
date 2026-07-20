@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, X, Loader2, UploadCloud, Download, KeyRound } from 'lucide-react';
+import { Search, Plus, MoreVertical, X, Loader2, UploadCloud, Download, KeyRound, Edit, Trash2 } from 'lucide-react';
 import axios from '../../lib/axios';
 
 interface Student {
@@ -24,12 +24,17 @@ const StudentListPage = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
   
+  // Dropdown state
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  
   // Form State
   const [formData, setFormData] = useState({
     nis: '',
     name: '',
     gender: 'L',
-    class_id: 1 // Default to 1 for demo purposes
+    class_id: 1, // Default to 1 for demo purposes
+    status: 'active'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -66,6 +71,14 @@ const StudentListPage = () => {
   useEffect(() => {
     fetchStudents();
     fetchClasses();
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,10 +87,17 @@ const StudentListPage = () => {
     setFormError('');
 
     try {
-      const response = await axios.post('/master/students', formData);
+      let response;
+      if (editingId) {
+        response = await axios.put(`/master/students/${editingId}`, formData);
+      } else {
+        response = await axios.post('/master/students', formData);
+      }
+      
       if (response.data.success) {
         setIsModalOpen(false);
-        setFormData({ nis: '', name: '', gender: 'L', class_id: classes.length > 0 ? classes[0].id : 1 });
+        setEditingId(null);
+        setFormData({ nis: '', name: '', gender: 'L', class_id: classes.length > 0 ? classes[0].id : 1, status: 'active' });
         fetchStudents(); // Refresh data
       }
     } catch (error: any) {
@@ -148,6 +168,35 @@ const StudentListPage = () => {
         alert('Gagal mereset sandi.');
       }
     }
+  };
+
+  const handleEdit = (student: Student) => {
+    setFormData({
+      nis: student.nis,
+      name: student.name,
+      gender: student.gender,
+      class_id: student.school_class?.id || (classes.length > 0 ? classes[0].id : 1),
+      status: student.status || 'active'
+    });
+    setEditingId(student.id);
+    setIsModalOpen(true);
+    setOpenDropdownId(null);
+    setFormError('');
+  };
+
+  const handleDelete = async (id: number, name: string) => {
+    if (window.confirm(`Yakin ingin menghapus siswa ${name}? Data jurnalnya juga akan terhapus!`)) {
+      try {
+        const response = await axios.delete(`/master/students/${id}`);
+        if (response.data.success) {
+          alert('Data siswa berhasil dihapus!');
+          fetchStudents();
+        }
+      } catch {
+        alert('Gagal menghapus siswa.');
+      }
+    }
+    setOpenDropdownId(null);
   };
 
   const filteredStudents = students.filter(s => 
@@ -246,9 +295,31 @@ const StudentListPage = () => {
                         >
                           <KeyRound size={18} />
                         </button>
-                        <button className="p-1.5 text-gray-400 hover:text-gray-700 rounded-md hover:bg-gray-100 transition-colors">
-                          <MoreVertical size={20} />
-                        </button>
+                        <div className="relative dropdown-container">
+                          <button 
+                            onClick={() => setOpenDropdownId(openDropdownId === student.id ? null : student.id)}
+                            className="p-1.5 text-gray-400 hover:text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
+                          >
+                            <MoreVertical size={20} />
+                          </button>
+                          
+                          {openDropdownId === student.id && (
+                            <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                              <button 
+                                onClick={() => handleEdit(student)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <Edit size={16} /> Edit Data
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(student.id, student.name)}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <Trash2 size={16} /> Hapus
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -266,9 +337,12 @@ const StudentListPage = () => {
           
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-800">Tambah Data Siswa</h3>
+              <h3 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Data Siswa' : 'Tambah Data Siswa'}</h3>
               <button 
-                onClick={() => !isSubmitting && setIsModalOpen(false)}
+                onClick={() => {
+                  !isSubmitting && setIsModalOpen(false);
+                  setEditingId(null);
+                }}
                 className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
               >
                 <X size={20} />
@@ -326,6 +400,20 @@ const StudentListPage = () => {
                     <option value="P">Perempuan</option>
                   </select>
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Status Siswa</label>
+                <select 
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:border-[#4CAF50] bg-white"
+                >
+                  <option value="active">Aktif</option>
+                  <option value="graduated">Lulus</option>
+                  <option value="transferred">Pindah</option>
+                  <option value="dropped_out">Keluar</option>
+                </select>
               </div>
               
               <div className="pt-4 flex justify-end gap-3">
