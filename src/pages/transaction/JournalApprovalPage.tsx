@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, CheckCircle, XCircle, Eye, X, Loader2, Calendar } from 'lucide-react';
+import { Search, CheckCircle, XCircle, Eye, X, Loader2, Calendar, Trash2 } from 'lucide-react';
 import axios from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -38,6 +38,23 @@ const JournalApprovalPage = () => {
   const [actionNote, setActionNote] = useState('');
   const [overriddenDetails, setOverriddenDetails] = useState<any[]>([]);
 
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+
+  // Initial load effect
+  useEffect(() => {
+    fetchJournals();
+  }, []);
+
+  // Debounced filter effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchJournals();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, filterDate]);
+
   const handleOpenModal = (journal: Journal) => {
     setSelectedJournal(journal);
     setOverriddenDetails(JSON.parse(JSON.stringify(journal.details))); // Deep copy
@@ -54,7 +71,11 @@ const JournalApprovalPage = () => {
   const fetchJournals = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('/journals');
+      let url = '/journals?limit=50';
+      if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
+      if (filterDate) url += `&date=${filterDate}`;
+
+      const response = await axios.get(url);
       if (response.data.success) {
         setJournals(response.data.data.data); // Asumsi pagination .data.data
       }
@@ -64,10 +85,6 @@ const JournalApprovalPage = () => {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchJournals();
-  }, []);
 
   const handleAction = async (status: 'approved' | 'rejected') => {
     if (!selectedJournal) return;
@@ -96,6 +113,20 @@ const JournalApprovalPage = () => {
       alert('Gagal memvalidasi jurnal ini.');
     } finally {
       setIsApproving(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus jurnal ini? Tindakan ini tidak dapat dibatalkan.')) return;
+    
+    try {
+      const response = await axios.delete(`/journals/${id}`);
+      if (response.data.success) {
+        fetchJournals();
+      }
+    } catch (error) {
+      console.error('Gagal menghapus jurnal', error);
+      alert('Terjadi kesalahan saat menghapus jurnal.');
     }
   };
 
@@ -128,13 +159,23 @@ const JournalApprovalPage = () => {
           <h1 className="text-2xl font-bold text-gray-800">Validasi Jurnal</h1>
           <p className="text-gray-500 text-sm mt-1">Pantau dan setujui jurnal harian siswa.</p>
         </div>
-        <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto focus-within:ring-2 focus-within:ring-[#4CAF50]/20 focus-within:border-[#4CAF50] transition-all">
-          <Search className="text-gray-400 w-5 h-5 mr-2" />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <input 
-            type="text" 
-            placeholder="Cari siswa atau tanggal..." 
-            className="outline-none text-sm w-full bg-transparent"
+            type="date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="w-full sm:w-auto bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#4CAF50]/20 focus:border-[#4CAF50] transition-all text-gray-600"
           />
+          <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto focus-within:ring-2 focus-within:ring-[#4CAF50]/20 focus-within:border-[#4CAF50] transition-all">
+            <Search className="text-gray-400 w-5 h-5 mr-2" />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari siswa atau NIS..." 
+              className="outline-none text-sm w-full bg-transparent"
+            />
+          </div>
         </div>
       </div>
 
@@ -198,13 +239,24 @@ const JournalApprovalPage = () => {
                         )}
                       </td>
                       <td className="p-4 text-center">
-                        <button 
-                          onClick={() => handleOpenModal(journal)}
-                          className="p-2 text-gray-400 hover:text-[#4CAF50] hover:bg-green-50 rounded-lg transition-colors"
-                          title="Lihat Detail & Validasi"
-                        >
-                          <Eye size={20} />
-                        </button>
+                        <div className="flex justify-center gap-2">
+                          <button 
+                            onClick={() => handleOpenModal(journal)}
+                            className="p-2 text-gray-400 hover:text-[#4CAF50] hover:bg-green-50 rounded-lg transition-colors"
+                            title="Lihat Detail & Validasi"
+                          >
+                            <Eye size={20} />
+                          </button>
+                          {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'guru') && (
+                            <button 
+                              onClick={() => handleDelete(journal.id)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Hapus Jurnal"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -282,7 +334,10 @@ const JournalApprovalPage = () => {
                       )}
 
                       {detail.note && (
-                        <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded-md italic">"{detail.note}"</p>
+                        <div className="mt-2 bg-blue-50 border border-blue-100 p-2.5 rounded-lg shadow-sm">
+                          <p className="text-[10px] font-bold text-blue-800 uppercase tracking-wider mb-1">Catatan Siswa:</p>
+                          <p className="text-sm text-blue-900 font-medium">"{detail.note}"</p>
+                        </div>
                       )}
                     </div>
                   </div>
