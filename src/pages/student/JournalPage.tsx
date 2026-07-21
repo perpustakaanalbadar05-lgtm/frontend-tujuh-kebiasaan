@@ -27,47 +27,60 @@ const JournalPage = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [isLocked, setIsLocked] = useState(false);
 
-  useEffect(() => {
-    const fetchHabits = async () => {
-      try {
-        const response = await axios.get('/master/habits');
-        if (response.data.success) {
-          const fetchedHabits = response.data.data;
-          setHabits(fetchedHabits);
+  // Fungsi untuk mendapatkan tanggal hari ini dalam format YYYY-MM-DD (zona waktu lokal)
+  const getLocalDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Fungsi untuk memuat data habits dan jurnal hari ini dari server
+  const loadJournalData = async () => {
+    try {
+      const response = await axios.get('/master/habits');
+      if (response.data.success) {
+        const fetchedHabits = response.data.data;
+        setHabits(fetchedHabits);
+        
+        const dateString = getLocalDateString();
+
+        // Fetch jurnal hari ini jika ada
+        const todayRes = await axios.get(`/journals/today?date=${dateString}`);
+        const todayJournal = todayRes.data?.data?.journal;
+        setIsLocked(todayRes.data?.data?.is_locked || false);
+
+        console.log('[JournalPage] Date:', dateString);
+        console.log('[JournalPage] API /journals/today response:', JSON.stringify(todayRes.data?.data));
+
+        // Inisialisasi state form berdasarkan data dari server
+        const initialForm = fetchedHabits.map((h: Habit) => {
+          const detail = todayJournal?.details?.find((d: any) => d.habit_id === h.id);
+          const isDone = detail ? Boolean(detail.is_done) : false;
           
-          // Ambil tanggal hari ini (format YYYY-MM-DD lokal)
-          const today = new Date();
-          const dateString = new Date(today.getTime() - (today.getTimezoneOffset() * 60000 ))
-                        .toISOString()
-                        .split("T")[0];
-
-          // Fetch jurnal hari ini jika ada
-          const todayRes = await axios.get(`/journals/today?date=${dateString}`);
-          const todayJournal = todayRes.data?.data?.journal;
-          setIsLocked(todayRes.data?.data?.is_locked || false);
-
-          // Inisialisasi state form
-          const initialForm = fetchedHabits.map((h: Habit) => {
-            const detail = todayJournal?.details?.find((d: any) => d.habit_id === h.id);
-            const isDone = detail ? Boolean(detail.is_done) : false;
-            return {
-              habit_id: h.id,
-              is_done: isDone,
-              time_performed: detail?.time_performed?.substring(0, 5) || '',
-              note: detail?.note || '',
-              is_locked_item: isDone && (todayRes.data?.data?.is_locked || false)
-            };
-          });
-          setFormState(initialForm);
-        }
-      } catch (error) {
-        console.error('Gagal mengambil data habit', error);
-        setErrorMsg('Gagal memuat daftar kebiasaan dari server.');
-      } finally {
-        setIsLoading(false);
+          console.log(`[JournalPage] Habit ${h.id} (${h.name}): detail found=${!!detail}, is_done=${isDone}`);
+          
+          return {
+            habit_id: h.id,
+            is_done: isDone,
+            time_performed: detail?.time_performed?.substring(0, 5) || '',
+            note: detail?.note || '',
+            is_locked_item: isDone // Mengunci item yang sudah dicentang dan tersimpan agar tidak bisa diubah lagi
+          };
+        });
+        setFormState(initialForm);
       }
-    };
-    fetchHabits();
+    } catch (error) {
+      console.error('Gagal mengambil data habit', error);
+      setErrorMsg('Gagal memuat daftar kebiasaan dari server.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadJournalData();
   }, []);
 
   const isTimeOutOfRange = (timePerformed: string, start?: string, end?: string) => {
@@ -123,23 +136,33 @@ const JournalPage = () => {
     setSuccessMsg('');
 
     try {
-      // Ambil tanggal hari ini (format YYYY-MM-DD lokal)
-      const today = new Date();
-      const dateString = new Date(today.getTime() - (today.getTimezoneOffset() * 60000 ))
-                    .toISOString()
-                    .split("T")[0];
+      const dateString = getLocalDateString();
+
+      // Bersihkan payload: kirim hanya field yang dibutuhkan backend
+      const cleanHabits = formState.map(item => ({
+        habit_id: item.habit_id,
+        is_done: item.is_done,
+        time_performed: item.is_done && item.time_performed ? item.time_performed : null,
+        note: item.note || null,
+      }));
 
       const payload = {
         date: dateString,
-        habits: formState
+        habits: cleanHabits
       };
+
+      console.log('[JournalPage] Submitting payload:', JSON.stringify(payload));
 
       const response = await axios.post('/journals', payload);
       if (response.data.success) {
         setSuccessMsg('Jurnal hari ini berhasil dikirim!');
-        // Opsional: disable form setelah sukses
+        
+        // Reload data dari server agar formState diperbarui dengan data terbaru
+        // sehingga centang yang sudah disimpan tetap muncul dan terkunci
+        await loadJournalData();
       }
     } catch (error: any) {
+      console.error('[JournalPage] Submit error:', error.response?.data || error);
       if (error.response?.data?.message) {
         setErrorMsg(error.response.data.message);
       } else {
