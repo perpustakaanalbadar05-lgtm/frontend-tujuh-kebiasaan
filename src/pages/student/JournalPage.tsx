@@ -56,7 +56,8 @@ const JournalPage = () => {
 
         // Inisialisasi state form berdasarkan data dari server
         const initialForm = fetchedHabits.map((h: Habit) => {
-          const detail = todayJournal?.details?.find((d: any) => d.habit_id === h.id);
+          // Number() diperlukan karena MySQL production mengembalikan habit_id sebagai string
+          const detail = todayJournal?.details?.find((d: any) => Number(d.habit_id) === Number(h.id));
           const isDone = detail ? Boolean(detail.is_done) : false;
           
           console.log(`[JournalPage] Habit ${h.id} (${h.name}): detail found=${!!detail}, is_done=${isDone}`);
