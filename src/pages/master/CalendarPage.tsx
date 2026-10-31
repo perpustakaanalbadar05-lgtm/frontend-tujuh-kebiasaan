@@ -4,10 +4,12 @@ import axios from '../../lib/axios';
 
 interface Holiday {
   id: number;
-  name: string;
-  start_date: string;
-  end_date: string;
-  type: string; // 'national', 'school'
+  title?: string;
+  name?: string;
+  date?: string;
+  start_date?: string;
+  end_date?: string;
+  type: string; // 'nasional', 'sekolah', 'national', 'school'
   description?: string;
 }
 
@@ -20,9 +22,9 @@ const CalendarPage = () => {
     const fetchHolidays = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('/master/holidays');
+        const response = await axios.get('/master/holidays?per_page=1000');
         if (response.data.success) {
-          setHolidays(response.data.data.data || response.data.data);
+          setHolidays(response.data.data.data || response.data.data || []);
         }
       } catch (error) {
         console.error('Failed to fetch holidays:', error);
@@ -63,7 +65,11 @@ const CalendarPage = () => {
     
     // Check if it's a holiday
     const holiday = holidays.find(h => {
-      return dateStr >= h.start_date && dateStr <= h.end_date;
+      if (h.start_date && h.end_date) {
+        return dateStr >= h.start_date && dateStr <= h.end_date;
+      }
+      const hDate = h.date || h.start_date;
+      return dateStr === hDate;
     });
 
     days.push({
@@ -164,8 +170,8 @@ const CalendarPage = () => {
                       
                       {d.holidayData && (
                         <div className="mt-2 text-xs">
-                          <div className={`p-1.5 rounded-lg border ${d.holidayData.type === 'national' ? 'bg-red-100 border-red-200 text-red-800' : 'bg-orange-100 border-orange-200 text-orange-800'} font-medium line-clamp-2 leading-tight`}>
-                            {d.holidayData.name}
+                          <div className={`p-1.5 rounded-lg border ${(d.holidayData.type === 'nasional' || d.holidayData.type === 'national') ? 'bg-red-100 border-red-200 text-red-800' : 'bg-orange-100 border-orange-200 text-orange-800'} font-medium line-clamp-2 leading-tight`}>
+                            {d.holidayData.title || d.holidayData.name}
                           </div>
                         </div>
                       )}
