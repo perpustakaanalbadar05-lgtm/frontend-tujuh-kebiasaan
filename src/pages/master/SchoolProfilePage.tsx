@@ -28,26 +28,28 @@ const SchoolProfilePage = () => {
         if (response.data.success) {
           const { school, settings } = response.data.data;
           
-          setFormData({
-            name: school.name || '',
-            npsn: school.npsn || '',
-            email: school.email || '',
-            phone: school.phone || '',
-            address: school.address || '',
-            theme_color: school.theme_color || '#4CAF50',
-            principal_name: settings.principal_name || '',
-          });
-          
-          if (settings.active_modules) {
-            try {
-              setActiveModules(JSON.parse(settings.active_modules));
-            } catch {
-              // ignore
+          if (school) {
+            setFormData({
+              name: school.name || '',
+              npsn: school.npsn || '',
+              email: school.email || '',
+              phone: school.phone || '',
+              address: school.address || '',
+              theme_color: school.theme_color || '#4CAF50',
+              principal_name: (settings && settings.principal_name) || '',
+            });
+            
+            if (settings && settings.active_modules) {
+              try {
+                setActiveModules(JSON.parse(settings.active_modules));
+              } catch {
+                // ignore
+              }
             }
-          }
 
-          if (school.logo) {
-            setLogoPreview(`${import.meta.env.VITE_API_URL.replace(/\/api$/, '')}/file-storage/${school.logo}`);
+            if (school.logo) {
+              setLogoPreview(`${import.meta.env.VITE_API_URL.replace(/\/api$/, '')}/file-storage/${school.logo}`);
+            }
           }
         }
       } catch (error) {
