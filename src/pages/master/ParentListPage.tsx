@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Edit2, Trash2, Loader2, UserCheck, X, Check } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Loader2, UserCheck, X, Check, KeyRound } from 'lucide-react';
 import axios from '../../lib/axios';
 
 interface Parent { id: number; name: string; email: string | null; phone: string | null; students?: { id: number; name: string; nis: string }[]; }
@@ -44,6 +44,17 @@ const ParentListPage = () => {
     try { await axios.delete(`/master/parents/${id}`); fetchData(pagination.current_page); } catch { /* empty */ }
   };
 
+  const handleResetPassword = async (p: Parent) => {
+    if (window.confirm(`Yakin ingin mereset password orang tua "${p.name}"? Password akan direset ke nomor telepon (atau 'password').`)) {
+      try {
+        const res = await axios.patch(`/master/parents/${p.id}/reset-password`);
+        alert(res.data?.message || 'Password berhasil direset');
+      } catch (err: any) {
+        alert(err.response?.data?.message || 'Gagal mereset password');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -70,8 +81,9 @@ const ParentListPage = () => {
                 <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">{p.phone || '—'}</td>
                 <td className="px-6 py-4 text-sm text-gray-600 hidden lg:table-cell">{p.students?.map(s => s.name).join(', ') || '—'}</td>
                 <td className="px-6 py-4 text-center"><div className="flex items-center justify-center gap-1">
-                  <button onClick={() => openEdit(p)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
-                  <button onClick={() => handleDelete(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                  <button onClick={() => handleResetPassword(p)} title="Reset Password" className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg"><KeyRound size={16} /></button>
+                  <button onClick={() => openEdit(p)} title="Edit Data" className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /></button>
+                  <button onClick={() => handleDelete(p.id)} title="Hapus Data" className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                 </div></td>
               </tr>
             ))}
