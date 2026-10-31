@@ -43,7 +43,11 @@ const AcademicYearListPage = () => {
   const handleSemSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setIsSubmitting(true); setErrorMsg('');
     try {
-      await axios.post('/master/semesters', { ...semForm, academic_year_id: Number(semForm.academic_year_id) });
+      const payload: Record<string, any> = { semester: semForm.semester };
+      if (semForm.academic_year_id) {
+        payload.academic_year_id = Number(semForm.academic_year_id);
+      }
+      await axios.post('/master/semesters', payload);
       setShowSemModal(false); fetchAll();
     } catch (err: any) { setErrorMsg(err.response?.data?.message || 'Error'); } finally { setIsSubmitting(false); }
   };
