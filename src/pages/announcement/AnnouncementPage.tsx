@@ -63,7 +63,7 @@ const AnnouncementPage = () => {
               <p className="text-xs text-gray-500 mb-4">{new Date(a.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' })}</p>
               <div className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">{a.content}</div>
             </div>
-            {isAdmin && a.school_id && (
+            {isAdmin && (user?.role === 'superadmin' || a.school_id) && (
               <div className="flex sm:flex-col gap-2 pt-4 sm:pt-0 border-t sm:border-t-0 sm:border-l border-gray-100 sm:pl-6 justify-center">
                 <button onClick={() => openEdit(a)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16} /> Edit</button>
                 <button onClick={() => handleDelete(a.id)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /> Hapus</button>

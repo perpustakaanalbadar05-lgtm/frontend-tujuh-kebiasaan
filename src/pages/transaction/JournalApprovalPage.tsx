@@ -77,7 +77,9 @@ const JournalApprovalPage = () => {
 
       const response = await axios.get(url);
       if (response.data.success) {
-        setJournals(response.data.data.data); // Asumsi pagination .data.data
+        const d = response.data.data;
+        const list = Array.isArray(d?.data) ? d.data : (Array.isArray(d) ? d : []);
+        setJournals(list);
       }
     } catch (error) {
       console.error('Gagal mengambil data jurnal', error);

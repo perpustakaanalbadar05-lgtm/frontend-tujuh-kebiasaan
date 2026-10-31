@@ -76,7 +76,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Total Siswa</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.total_students.toLocaleString('id-ID')}</p>
+            <p className="text-2xl font-bold text-gray-900">{(stats.total_students ?? 0).toLocaleString('id-ID')}</p>
           </div>
         </div>
         
@@ -86,7 +86,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Total Guru</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.total_teachers.toLocaleString('id-ID')}</p>
+            <p className="text-2xl font-bold text-gray-900">{(stats.total_teachers ?? 0).toLocaleString('id-ID')}</p>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Jurnal Terisi (Mg ini)</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.journals_this_week.toLocaleString('id-ID')}</p>
+            <p className="text-2xl font-bold text-gray-900">{(stats.journals_this_week ?? 0).toLocaleString('id-ID')}</p>
           </div>
         </div>
 
@@ -106,7 +106,7 @@ const DashboardPage = () => {
           </div>
           <div>
             <p className="text-sm text-gray-500 font-medium">Tingkat Aktivitas</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.activity_rate}%</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.activity_rate ?? 0}%</p>
           </div>
         </div>
       </div>
