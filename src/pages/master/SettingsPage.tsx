@@ -3,7 +3,7 @@ import { Settings, Calendar, Users, ListChecks, Plus, Edit2, Trash2, Loader2 } f
 import axios from '../../lib/axios';
 
 const SettingsPage = () => {
-  const [activeTab, setActiveTab] = useState<'academic_years' | 'classes' | 'habits'>('academic_years');
+  const [activeTab, setActiveTab] = useState<'academic_years' | 'classes' | 'habits'>('classes');
   
   // States
   const [academicYears, setAcademicYears] = useState<any[]>([]);
@@ -11,7 +11,7 @@ const SettingsPage = () => {
   const [habits, setHabits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Form States (Simple implementation)
+  // Form States
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -21,12 +21,12 @@ const SettingsPage = () => {
     try {
       const [ayRes, classRes, habitRes] = await Promise.all([
         axios.get('/master/academic-years'),
-        axios.get('/master/classes'), // Ini akan butuh API resource, kita asumsikan sudah ada
+        axios.get('/master/classes'),
         axios.get('/master/habits')
       ]);
-      setAcademicYears(ayRes.data.data);
-      setClasses(classRes.data.data);
-      setHabits(habitRes.data.data);
+      setAcademicYears(ayRes.data.data || []);
+      setClasses(classRes.data.data || []);
+      setHabits(habitRes.data.data || []);
     } catch (error) {
       console.error('Gagal mengambil data master', error);
     } finally {
@@ -41,11 +41,22 @@ const SettingsPage = () => {
   const openForm = (data: any = null) => {
     setEditingId(data ? data.id : null);
     if (data) {
-      setFormData(data);
+      setFormData({
+        ...data,
+        year: data.year || data.name || '',
+      });
     } else {
-      if (activeTab === 'academic_years') setFormData({ name: '', start_date: '', end_date: '', active: false });
-      if (activeTab === 'classes') setFormData({ grade: '', name: '', academic_year_id: academicYears[0]?.id || '' });
-      if (activeTab === 'habits') setFormData({ name: '', order_number: habits.length + 1, active: true });
+      if (activeTab === 'academic_years') {
+        const nextYear = new Date().getFullYear();
+        setFormData({ year: `${nextYear}/${nextYear + 1}`, active: true });
+      }
+      if (activeTab === 'classes') {
+        const activeAy = academicYears.find(a => a.active) || academicYears[0];
+        setFormData({ grade: '', name: '', academic_year_id: activeAy?.id || '' });
+      }
+      if (activeTab === 'habits') {
+        setFormData({ name: '', order_number: habits.length + 1, active: true, start_time: '', end_time: '' });
+      }
     }
     setShowForm(true);
   };
@@ -60,19 +71,24 @@ const SettingsPage = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      let endpoint = `/master/${activeTab.replace('_', '-')}`; // academic-years, classes, habits
+      let endpoint = `/master/${activeTab.replace('_', '-')}`;
       if (activeTab === 'academic_years') endpoint = '/master/academic-years';
       
+      const payload = { ...formData };
+      if (activeTab === 'academic_years') {
+        payload.year = payload.year || payload.name;
+      }
+      
       if (editingId) {
-        await axios.put(`${endpoint}/${editingId}`, formData);
+        await axios.put(`${endpoint}/${editingId}`, payload);
       } else {
-        await axios.post(endpoint, formData);
+        await axios.post(endpoint, payload);
       }
       await fetchData();
       closeForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Gagal menyimpan', error);
-      alert('Gagal menyimpan data.');
+      alert(error.response?.data?.message || 'Gagal menyimpan data.');
     } finally {
       setIsLoading(false);
     }
@@ -154,31 +170,33 @@ const SettingsPage = () => {
                 <thead>
                   <tr className="bg-gray-50 text-sm text-gray-600 border-b border-gray-100">
                     <th className="p-4 font-semibold">Tahun Ajaran</th>
-                    <th className="p-4 font-semibold">Mulai</th>
-                    <th className="p-4 font-semibold">Berakhir</th>
                     <th className="p-4 font-semibold text-center">Status</th>
                     <th className="p-4 font-semibold text-center w-24">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {academicYears.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50/50">
-                      <td className="p-4 font-medium text-gray-800">{item.name}</td>
-                      <td className="p-4 text-gray-600">{item.start_date}</td>
-                      <td className="p-4 text-gray-600">{item.end_date}</td>
-                      <td className="p-4 text-center">
-                        {item.active ? (
-                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Aktif</span>
-                        ) : (
-                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Nonaktif</span>
-                        )}
-                      </td>
-                      <td className="p-4 flex justify-center gap-2">
-                        <button onClick={() => openForm(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
-                        <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
-                      </td>
+                  {academicYears.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="p-8 text-center text-gray-400">Belum ada tahun ajaran.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    academicYears.map(item => (
+                      <tr key={item.id} className="hover:bg-gray-50/50">
+                        <td className="p-4 font-medium text-gray-800">{item.year || item.name}</td>
+                        <td className="p-4 text-center">
+                          {item.active ? (
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Aktif</span>
+                          ) : (
+                            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Nonaktif</span>
+                          )}
+                        </td>
+                        <td className="p-4 flex justify-center gap-2">
+                          <button onClick={() => openForm(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
+                          <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             )}
@@ -195,17 +213,23 @@ const SettingsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {classes.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50/50">
-                      <td className="p-4 font-medium text-gray-800">Kelas {item.grade}</td>
-                      <td className="p-4 text-gray-800">{item.name}</td>
-                      <td className="p-4 text-gray-500">{item.academic_year?.name || '-'}</td>
-                      <td className="p-4 flex justify-center gap-2">
-                        <button onClick={() => openForm(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
-                        <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
-                      </td>
+                  {classes.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-gray-400">Belum ada data kelas.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    classes.map(item => (
+                      <tr key={item.id} className="hover:bg-gray-50/50">
+                        <td className="p-4 font-medium text-gray-800">Kelas {item.grade}</td>
+                        <td className="p-4 text-gray-800 font-semibold">{item.name}</td>
+                        <td className="p-4 text-gray-600">{item.academic_year?.year || item.academic_year?.name || '-'}</td>
+                        <td className="p-4 flex justify-center gap-2">
+                          <button onClick={() => openForm(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
+                          <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             )}
@@ -222,23 +246,29 @@ const SettingsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {habits.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50/50">
-                      <td className="p-4 text-center font-bold text-gray-500">#{item.order_number}</td>
-                      <td className="p-4 font-medium text-gray-800">{item.name}</td>
-                      <td className="p-4 text-center">
-                        {item.active ? (
-                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Aktif</span>
-                        ) : (
-                          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Nonaktif</span>
-                        )}
-                      </td>
-                      <td className="p-4 flex justify-center gap-2">
-                        <button onClick={() => openForm(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
-                        <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
-                      </td>
+                  {habits.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-gray-400">Belum ada data kebiasaan.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    habits.map(item => (
+                      <tr key={item.id} className="hover:bg-gray-50/50">
+                        <td className="p-4 text-center font-bold text-gray-500">#{item.order_number}</td>
+                        <td className="p-4 font-medium text-gray-800">{item.name}</td>
+                        <td className="p-4 text-center">
+                          {item.active ? (
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Aktif</span>
+                          ) : (
+                            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium">Nonaktif</span>
+                          )}
+                        </td>
+                        <td className="p-4 flex justify-center gap-2">
+                          <button onClick={() => openForm(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
+                          <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             )}
@@ -249,7 +279,7 @@ const SettingsPage = () => {
       {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-gray-100">
               <h3 className="text-lg font-bold text-gray-800">{editingId ? 'Edit Data' : 'Tambah Baru'}</h3>
             </div>
@@ -258,21 +288,24 @@ const SettingsPage = () => {
               {activeTab === 'academic_years' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nama (Cth: 2024/2025)</label>
-                    <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mulai</label>
-                      <input required type="date" value={formData.start_date || ''} onChange={e => setFormData({...formData, start_date: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Berakhir</label>
-                      <input required type="date" value={formData.end_date || ''} onChange={e => setFormData({...formData, end_date: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran (Cth: 2026/2027)</label>
+                    <input 
+                      required 
+                      type="text" 
+                      placeholder="2026/2027" 
+                      value={formData.year || ''} 
+                      onChange={e => setFormData({...formData, year: e.target.value})} 
+                      className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#4CAF50] outline-none"
+                    />
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    <input type="checkbox" id="active_ay" checked={formData.active || false} onChange={e => setFormData({...formData, active: e.target.checked})} className="w-4 h-4 text-[#4CAF50] rounded border-gray-300 focus:ring-[#4CAF50]"/>
+                    <input 
+                      type="checkbox" 
+                      id="active_ay" 
+                      checked={formData.active || false} 
+                      onChange={e => setFormData({...formData, active: e.target.checked})} 
+                      className="w-4 h-4 text-[#4CAF50] rounded border-gray-300 focus:ring-[#4CAF50]"
+                    />
                     <label htmlFor="active_ay" className="text-sm font-medium text-gray-700">Set sebagai Tahun Ajaran Aktif</label>
                   </div>
                 </>
@@ -282,21 +315,42 @@ const SettingsPage = () => {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran</label>
-                    <select required value={formData.academic_year_id || ''} onChange={e => setFormData({...formData, academic_year_id: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none">
+                    <select 
+                      required 
+                      value={formData.academic_year_id || ''} 
+                      onChange={e => setFormData({...formData, academic_year_id: e.target.value})} 
+                      className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#4CAF50] outline-none"
+                    >
                       <option value="">Pilih Tahun Ajaran...</option>
                       {academicYears.map(ay => (
-                        <option key={ay.id} value={ay.id}>{ay.name}</option>
+                        <option key={ay.id} value={ay.id}>
+                          {ay.year || ay.name} {ay.active ? '(Aktif)' : ''}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Tingkat (Grade)</label>
-                      <input required type="text" placeholder="Cth: 10" value={formData.grade || ''} onChange={e => setFormData({...formData, grade: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
+                      <input 
+                        required 
+                        type="text" 
+                        placeholder="Cth: 7, 8, atau 9" 
+                        value={formData.grade || ''} 
+                        onChange={e => setFormData({...formData, grade: e.target.value})} 
+                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#4CAF50] outline-none"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kelas</label>
-                      <input required type="text" placeholder="Cth: X MIPA 1" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
+                      <input 
+                        required 
+                        type="text" 
+                        placeholder="Cth: 7A, 8B" 
+                        value={formData.name || ''} 
+                        onChange={e => setFormData({...formData, name: e.target.value})} 
+                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#4CAF50] outline-none"
+                      />
                     </div>
                   </div>
                 </>
@@ -306,14 +360,33 @@ const SettingsPage = () => {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Redaksi Kebiasaan</label>
-                    <input required type="text" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
+                    <input 
+                      required 
+                      type="text" 
+                      value={formData.name || ''} 
+                      onChange={e => setFormData({...formData, name: e.target.value})} 
+                      className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#4CAF50] outline-none"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nomor Urut</label>
-                    <input required type="number" min="1" value={formData.order_number || ''} onChange={e => setFormData({...formData, order_number: e.target.value})} className="w-full border rounded-lg p-2.5 focus:ring-2 outline-none"/>
+                    <input 
+                      required 
+                      type="number" 
+                      min="1" 
+                      value={formData.order_number || ''} 
+                      onChange={e => setFormData({...formData, order_number: e.target.value})} 
+                      className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#4CAF50] outline-none"
+                    />
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    <input type="checkbox" id="active_hb" checked={formData.active !== false} onChange={e => setFormData({...formData, active: e.target.checked})} className="w-4 h-4 text-[#4CAF50] rounded border-gray-300 focus:ring-[#4CAF50]"/>
+                    <input 
+                      type="checkbox" 
+                      id="active_hb" 
+                      checked={formData.active !== false} 
+                      onChange={e => setFormData({...formData, active: e.target.checked})} 
+                      className="w-4 h-4 text-[#4CAF50] rounded border-gray-300 focus:ring-[#4CAF50]"
+                    />
                     <label htmlFor="active_hb" className="text-sm font-medium text-gray-700">Tampilkan di Form Siswa</label>
                   </div>
                 </>
