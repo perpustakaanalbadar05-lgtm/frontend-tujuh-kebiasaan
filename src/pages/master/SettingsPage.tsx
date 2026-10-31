@@ -78,6 +78,14 @@ const SettingsPage = () => {
       if (activeTab === 'academic_years') {
         payload.year = payload.year || payload.name;
       }
+      if (activeTab === 'habits') {
+        if (!payload.start_time) delete payload.start_time;
+        if (!payload.end_time) delete payload.end_time;
+      }
+      if (activeTab === 'classes') {
+        if (!payload.teacher_id) delete payload.teacher_id;
+        if (!payload.academic_year_id) delete payload.academic_year_id;
+      }
       
       if (editingId) {
         await axios.put(`${endpoint}/${editingId}`, payload);

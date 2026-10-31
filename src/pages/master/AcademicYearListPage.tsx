@@ -103,7 +103,7 @@ const AcademicYearListPage = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div><h2 className="text-2xl font-bold text-gray-800">Semester</h2><p className="text-sm text-gray-500">Kelola semester per tahun ajaran.</p></div>
-          <button onClick={() => { setSemForm({ academic_year_id: years[0]?.id?.toString() || '', semester: 'Ganjil' }); setErrorMsg(''); setShowSemModal(true); }} className="bg-[#4CAF50] hover:bg-[#388E3C] text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-all"><Plus size={18} /> Tambah</button>
+          <button onClick={() => { const activeY = years.find(y => y.active) || years[0]; setSemForm({ academic_year_id: activeY ? String(activeY.id) : '', semester: 'Ganjil' }); setErrorMsg(''); setShowSemModal(true); }} className="bg-[#4CAF50] hover:bg-[#388E3C] text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-all"><Plus size={18} /> Tambah</button>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full">

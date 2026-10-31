@@ -25,8 +25,11 @@ const HabitListPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setIsSubmitting(true); setErrorMsg('');
     try {
-      if (editingItem) await axios.put(`/master/habits/${editingItem.id}`, form);
-      else await axios.post('/master/habits', form);
+      const payload: Record<string, any> = { ...form };
+      if (!payload.start_time) delete payload.start_time;
+      if (!payload.end_time) delete payload.end_time;
+      if (editingItem) await axios.put(`/master/habits/${editingItem.id}`, payload);
+      else await axios.post('/master/habits', payload);
       setShowModal(false); fetchData();
     } catch (err: any) { setErrorMsg(err.response?.data?.message || 'Error'); } finally { setIsSubmitting(false); }
   };
